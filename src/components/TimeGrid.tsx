@@ -38,17 +38,15 @@ import type {
   CalendarMode,
   EventKeyExtractor,
   RenderEvent,
+  TimeGridMode,
   WeekStartsOn,
 } from '../types';
-import { getIsToday, getWeekDays, isWeekend } from '../utils/dates';
+import { getIsToday, getViewDays, isWeekend, viewDayCount } from '../utils/dates';
 import { layoutDayEvents, type PositionedEvent } from '../utils/layout';
 import { AllDayLane } from './AllDayLane';
 
 const MINUTES_PER_HOUR = 60;
 const HOURS_PER_DAY = 24;
-// Days (day view) or weeks (week view) to step when paging to an adjacent page.
-const DAY_VIEW_STEP = 1;
-const WEEK_VIEW_STEP = 7;
 // Steps rendered either side of the current page. LegendList virtualises, so
 // only a few mount at once; a wide window means the user effectively never runs
 // out of pages to swipe. Items are keyed by date and never recycled.
@@ -208,7 +206,8 @@ const NowIndicator = ({ cellHeight, nowHours, minHour, left, color }: NowIndicat
 };
 
 type TimetablePageProps<T> = {
-  mode: 'day' | 'week';
+  mode: TimeGridMode;
+  numberOfDays: number;
   date: Date;
   events: CalendarEvent<T>[];
   cellHeight: SharedValue<number>;
@@ -241,6 +240,7 @@ type TimetablePageProps<T> = {
 // next dates are ready to drag into view.
 function TimetablePageInner<T>({
   mode,
+  numberOfDays,
   date,
   events,
   cellHeight,
@@ -291,8 +291,8 @@ function TimetablePageInner<T>({
   );
 
   const days = useMemo(
-    () => (mode === 'week' ? getWeekDays(date, weekStartsOn) : [date]),
-    [mode, date, weekStartsOn],
+    () => getViewDays(mode, date, weekStartsOn, numberOfDays),
+    [mode, date, weekStartsOn, numberOfDays],
   );
 
   const dayWidth = (width - hourColumnWidth) / days.length;
@@ -490,7 +490,9 @@ function TimetablePageInner<T>({
 const TimetablePage = memo(TimetablePageInner) as typeof TimetablePageInner;
 
 export type TimeGridProps<T> = {
-  mode: 'day' | 'week';
+  mode: TimeGridMode;
+  /** Day columns to show in `custom` mode. Ignored by day/3days/week. Default 1. */
+  numberOfDays?: number;
   date: Date;
   events: CalendarEvent<T>[];
   cellHeight: SharedValue<number>;
@@ -523,6 +525,7 @@ export type TimeGridProps<T> = {
 
 function TimeGridInner<T>({
   mode,
+  numberOfDays = 1,
   date,
   events,
   cellHeight,
@@ -556,7 +559,8 @@ function TimeGridInner<T>({
   // Horizontal list items need an explicit cross-axis height; seed it with the
   // window height (so it renders immediately and in tests) and refine on layout.
   const [pageHeight, setPageHeight] = useState(height);
-  const step = mode === 'week' ? WEEK_VIEW_STEP : DAY_VIEW_STEP;
+  // Days advanced per page = the number of visible columns.
+  const step = viewDayCount(mode, numberOfDays);
   // Shared vertical scroll offset so every mounted page stays aligned. Seeded
   // from the numeric hourHeight rather than reading cellHeight.value (which
   // would warn about reading a shared value during render).
@@ -587,7 +591,9 @@ function TimeGridInner<T>({
     (target: Date) => {
       const aligned =
         mode === 'week' ? startOfWeek(target, { weekStartsOn }) : startOfDay(target);
-      return Math.round(differenceInCalendarDays(aligned, anchor) / step) + PAGE_WINDOW;
+      // Floor so an arbitrary date lands on the page whose range contains it
+      // (exact for day/week, where dates are already page-aligned).
+      return Math.floor(differenceInCalendarDays(aligned, anchor) / step) + PAGE_WINDOW;
     },
     [anchor, mode, step, weekStartsOn],
   );
@@ -597,11 +603,11 @@ function TimeGridInner<T>({
   const activeIndex = indexOfDate(date);
   const viewedIndexRef = useRef(activeIndex);
 
-  // Header days track the committed date and render outside the list, so a swipe
-  // never flashes another day's label.
+  // Header days track the active page (page-aligned), so they always match the
+  // columns below and a swipe never flashes another day's label.
   const headerDays = useMemo(
-    () => (mode === 'week' ? getWeekDays(date, weekStartsOn) : [date]),
-    [mode, date, weekStartsOn],
+    () => getViewDays(mode, pageDates[activeIndex] ?? date, weekStartsOn, numberOfDays),
+    [mode, pageDates, activeIndex, date, weekStartsOn, numberOfDays],
   );
 
   const handleViewableItemsChanged = useCallback(
@@ -630,6 +636,7 @@ function TimeGridInner<T>({
       <View style={{ width, height: pageHeight }}>
         <TimetablePage
           mode={mode}
+          numberOfDays={numberOfDays}
           date={item}
           events={events}
           cellHeight={cellHeight}
@@ -659,6 +666,7 @@ function TimeGridInner<T>({
       width,
       pageHeight,
       mode,
+      numberOfDays,
       events,
       cellHeight,
       hourHeight,

@@ -1,7 +1,10 @@
 import type { ComponentType } from 'react';
 import type { SharedValue } from 'react-native-reanimated';
 
-export type CalendarMode = 'day' | 'week' | 'month';
+export type CalendarMode = 'day' | '3days' | 'week' | 'custom' | 'month';
+
+/** The time-grid modes (everything except the month grid). */
+export type TimeGridMode = Exclude<CalendarMode, 'month'>;
 
 /**
  * The minimal shape every calendar event must have. Layout (positioning,

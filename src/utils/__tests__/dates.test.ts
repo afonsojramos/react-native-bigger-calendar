@@ -1,5 +1,13 @@
 import { format } from 'date-fns';
-import { getIsToday, getWeekDays, isSameCalendarDay, isWeekend, minutesIntoDay } from '../dates';
+import {
+  getIsToday,
+  getViewDays,
+  getWeekDays,
+  isSameCalendarDay,
+  isWeekend,
+  minutesIntoDay,
+  viewDayCount,
+} from '../dates';
 
 describe('getWeekDays', () => {
   const wed = new Date(2026, 5, 17, 12); // Wednesday 17 Jun 2026
@@ -28,6 +36,32 @@ describe('getWeekDays', () => {
     const mon = new Date(2026, 5, 15, 9);
     const days = getWeekDays(mon, 1);
     expect(format(days[0], 'd LLL')).toBe('15 Jun');
+  });
+});
+
+describe('viewDayCount', () => {
+  it('maps each mode to a column count', () => {
+    expect(viewDayCount('day')).toBe(1);
+    expect(viewDayCount('3days')).toBe(3);
+    expect(viewDayCount('week')).toBe(7);
+    expect(viewDayCount('custom', 5)).toBe(5);
+    expect(viewDayCount('custom', 0)).toBe(1); // clamped to >= 1
+  });
+});
+
+describe('getViewDays', () => {
+  const wed = new Date(2026, 5, 17, 12); // Wednesday
+
+  it('spans the calendar week for week mode', () => {
+    const days = getViewDays('week', wed, 1);
+    expect(days).toHaveLength(7);
+    expect(format(days[0], 'EEE')).toBe('Mon');
+  });
+
+  it('returns N consecutive days from the date for custom/3days/day', () => {
+    expect(getViewDays('day', wed, 1).map((d) => format(d, 'd'))).toEqual(['17']);
+    expect(getViewDays('3days', wed, 1).map((d) => format(d, 'd'))).toEqual(['17', '18', '19']);
+    expect(getViewDays('custom', wed, 1, 2).map((d) => format(d, 'd'))).toEqual(['17', '18']);
   });
 });
 

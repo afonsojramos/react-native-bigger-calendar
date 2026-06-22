@@ -34,6 +34,8 @@ export type CalendarProps<T> = {
   maxVisibleEventCount?: number;
   /** First day of the week. Sunday = 0 (default) … Saturday = 6. */
   weekStartsOn?: WeekStartsOn;
+  /** Number of day columns when `mode="custom"`. Ignored by other modes. Default 1. */
+  numberOfDays?: number;
   /** Replace the built-in event box. Return a `flex: 1` element. */
   renderEvent?: RenderEvent<T>;
   /** Stable key per event. Defaults to start-time + index. */
@@ -88,6 +90,7 @@ export function Calendar<T>({
   onLongPressCell,
   maxVisibleEventCount = 2,
   weekStartsOn = 0,
+  numberOfDays,
   renderEvent = DefaultEvent,
   keyExtractor = defaultKeyExtractor as EventKeyExtractor<T>,
   theme,
@@ -130,6 +133,7 @@ export function Calendar<T>({
       ) : (
         <TimeGrid
           mode={mode}
+          numberOfDays={numberOfDays}
           date={date}
           events={events}
           cellHeight={cellHeight}

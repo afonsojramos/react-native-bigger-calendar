@@ -18,6 +18,7 @@ export type {
   ICalendarEvent,
   RenderEvent,
   RenderEventArgs,
+  TimeGridMode,
   WeekStartsOn,
 } from './types';
 export {
