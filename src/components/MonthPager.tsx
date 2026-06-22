@@ -6,7 +6,7 @@ import {
 } from '@legendapp/list/react-native';
 import { addMonths, differenceInCalendarMonths, type Locale, startOfMonth } from 'date-fns';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, type StyleProp, useWindowDimensions, View, type ViewStyle } from 'react-native';
 import type { CalendarEvent, EventKeyExtractor, RenderEvent, WeekStartsOn } from '../types';
 import { MonthView } from './MonthView';
 
@@ -29,6 +29,7 @@ export type MonthPagerProps<T> = {
   moreLabel?: string;
   showAdjacentMonths?: boolean;
   disableMonthEventCellPress?: boolean;
+  calendarCellStyle?: (date: Date) => StyleProp<ViewStyle>;
   renderEvent: RenderEvent<T>;
   keyExtractor: EventKeyExtractor<T>;
   onPressDay?: (date: Date) => void;
@@ -50,6 +51,7 @@ function MonthPagerInner<T>({
   moreLabel,
   showAdjacentMonths,
   disableMonthEventCellPress,
+  calendarCellStyle,
   renderEvent,
   keyExtractor,
   onPressDay,
@@ -121,6 +123,7 @@ function MonthPagerInner<T>({
           moreLabel={moreLabel}
           showAdjacentMonths={showAdjacentMonths}
           disableMonthEventCellPress={disableMonthEventCellPress}
+          calendarCellStyle={calendarCellStyle}
           renderEvent={renderEvent}
           keyExtractor={keyExtractor}
           onPressDay={onPressDay}
@@ -142,6 +145,7 @@ function MonthPagerInner<T>({
       moreLabel,
       showAdjacentMonths,
       disableMonthEventCellPress,
+      calendarCellStyle,
       renderEvent,
       keyExtractor,
       onPressDay,

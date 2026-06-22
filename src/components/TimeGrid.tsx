@@ -20,9 +20,11 @@ import {
   type GestureResponderEvent,
   Pressable,
   StyleSheet,
+  type StyleProp,
   Text,
   useWindowDimensions,
   View,
+  type ViewStyle,
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -251,6 +253,7 @@ type TimetablePageProps<T> = {
   maxHour: number;
   ampm: boolean;
   timeslots: number;
+  calendarCellStyle?: (date: Date) => StyleProp<ViewStyle>;
   minHourHeight: number;
   maxHourHeight: number;
   showNowIndicator: boolean;
@@ -282,6 +285,7 @@ function TimetablePageInner<T>({
   maxHour,
   ampm,
   timeslots,
+  calendarCellStyle,
   minHourHeight,
   maxHourHeight,
   showNowIndicator,
@@ -450,6 +454,24 @@ function TimetablePageInner<T>({
               ) : null,
             )}
 
+            {calendarCellStyle
+              ? days.map((day, dayIndex) => {
+                  const cellStyle = calendarCellStyle(day);
+                  return cellStyle ? (
+                    <Animated.View
+                      key={`cell-${day.toISOString()}`}
+                      style={[
+                        styles.weekendColumn,
+                        { left: dayLeft(dayIndex), width: dayWidth },
+                        cellStyle,
+                        fullHeightStyle,
+                      ]}
+                      pointerEvents="none"
+                    />
+                  ) : null;
+                })
+              : null}
+
             {days.map((day, dayIndex) => (
               <Animated.View
                 key={`separator-${day.toISOString()}`}
@@ -550,6 +572,8 @@ export type TimeGridProps<T> = {
   hideHours?: boolean;
   /** Sub-hour divider lines per hour (e.g. 2 = half-hours). Default 1 (none). */
   timeslots?: number;
+  /** Per-date style merged onto each day column. */
+  calendarCellStyle?: (date: Date) => StyleProp<ViewStyle>;
   /** Show the ISO week number in the header gutter. Default false. */
   showWeekNumber?: boolean;
   /** Element rendered between the day header and the grid. */
@@ -590,6 +614,7 @@ function TimeGridInner<T>({
   hourColumnWidth: hourColumnWidthProp = DEFAULT_HOUR_COLUMN_WIDTH,
   hideHours = false,
   timeslots = 1,
+  calendarCellStyle,
   showWeekNumber = false,
   headerComponent,
   minHour = 0,
@@ -711,6 +736,7 @@ function TimeGridInner<T>({
           maxHour={clampedMaxHour}
           ampm={ampm}
           timeslots={timeslots}
+          calendarCellStyle={calendarCellStyle}
           minHourHeight={minHourHeight}
           maxHourHeight={maxHourHeight}
           showNowIndicator={showNowIndicator}
@@ -741,6 +767,7 @@ function TimeGridInner<T>({
       clampedMaxHour,
       ampm,
       timeslots,
+      calendarCellStyle,
       minHourHeight,
       maxHourHeight,
       showNowIndicator,

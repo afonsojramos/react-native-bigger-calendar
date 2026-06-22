@@ -10,7 +10,7 @@ import {
   startOfWeek,
 } from 'date-fns';
 import { memo, useMemo } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, type StyleProp, Text, TouchableOpacity, View, type ViewStyle } from 'react-native';
 import { useCalendarTheme } from '../theme';
 import type { CalendarEvent, EventKeyExtractor, RenderEvent, WeekStartsOn } from '../types';
 import { getIsToday, isWeekend } from '../utils/dates';
@@ -38,6 +38,8 @@ export type MonthViewProps<T> = {
   showAdjacentMonths?: boolean;
   /** Ignore taps on month-cell events (day-cell taps still fire). Default false. */
   disableMonthEventCellPress?: boolean;
+  /** Per-date style merged onto the day cell. */
+  calendarCellStyle?: (date: Date) => StyleProp<ViewStyle>;
   renderEvent: RenderEvent<T>;
   keyExtractor: EventKeyExtractor<T>;
   onPressDay?: (date: Date) => void;
@@ -57,6 +59,7 @@ function MonthViewInner<T>({
   moreLabel = '{moreCount} More',
   showAdjacentMonths = true,
   disableMonthEventCellPress = false,
+  calendarCellStyle,
   renderEvent,
   keyExtractor,
   onPressDay,
@@ -131,6 +134,7 @@ function MonthViewInner<T>({
           styles.dayCell,
           { borderColor: theme.colors.gridLine },
           isWeekend(day) && { backgroundColor: theme.colors.weekendBackground },
+          calendarCellStyle?.(day),
         ]}
         onPress={onPressDay ? () => onPressDay(day) : undefined}
         onLongPress={onLongPressDay ? () => onLongPressDay(day) : undefined}

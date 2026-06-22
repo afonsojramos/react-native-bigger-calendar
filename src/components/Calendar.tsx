@@ -54,6 +54,8 @@ export type CalendarProps<T> = {
   renderEvent?: RenderEvent<T>;
   /** Per-event style merged onto the built-in event box (static or a function of the event). */
   eventCellStyle?: StyleProp<ViewStyle> | ((event: CalendarEvent<T>) => StyleProp<ViewStyle>);
+  /** Per-date style for month cells and week/day columns (e.g. shade specific dates). */
+  calendarCellStyle?: (date: Date) => StyleProp<ViewStyle>;
   /** Stable key per event. Defaults to start-time + index. */
   keyExtractor?: EventKeyExtractor<T>;
   /** Partial theme merged over the defaults. */
@@ -122,6 +124,7 @@ export function Calendar<T>({
   numberOfDays,
   renderEvent = DefaultEvent,
   eventCellStyle,
+  calendarCellStyle,
   keyExtractor = defaultKeyExtractor as EventKeyExtractor<T>,
   theme,
   cellHeight: cellHeightProp,
@@ -188,6 +191,7 @@ export function Calendar<T>({
           moreLabel={moreLabel}
           showAdjacentMonths={showAdjacentMonths}
           disableMonthEventCellPress={disableMonthEventCellPress}
+          calendarCellStyle={calendarCellStyle}
           renderEvent={resolvedRenderEvent}
           keyExtractor={keyExtractor}
           onPressDay={onPressDay}
@@ -223,6 +227,7 @@ export function Calendar<T>({
           hourColumnWidth={hourColumnWidth}
           hideHours={hideHours}
           timeslots={timeslots}
+          calendarCellStyle={calendarCellStyle}
           showWeekNumber={showWeekNumber}
           headerComponent={headerComponent}
           minHour={minHour}
