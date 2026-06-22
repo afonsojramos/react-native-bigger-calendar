@@ -53,6 +53,11 @@ export type CalendarProps<T> = {
   showNowIndicator?: boolean;
   /** BCP-47 locale for weekday labels. Defaults to the device locale. */
   locale?: string;
+  /**
+   * Allow a fling to carry across several pages before snapping. Default false:
+   * one day/week/month per swipe.
+   */
+  freeSwipe?: boolean;
   /** Custom header above the week/day grid. Receives the visible days. */
   renderTimeGridHeader?: (days: Date[]) => React.ReactNode;
 };
@@ -88,6 +93,7 @@ export function Calendar<T>({
   scrollOffsetMinutes,
   showNowIndicator,
   locale,
+  freeSwipe,
   renderTimeGridHeader,
 }: CalendarProps<T>) {
   const mergedTheme = useMemo(() => mergeTheme(theme), [theme]);
@@ -108,6 +114,7 @@ export function Calendar<T>({
           onPressEvent={onPressEvent}
           onPressMore={onPressMore}
           onChangeDate={onChangeDate}
+          freeSwipe={freeSwipe}
         />
       ) : (
         <TimeGrid
@@ -128,6 +135,7 @@ export function Calendar<T>({
           maxHourHeight={maxHourHeight}
           showNowIndicator={showNowIndicator}
           locale={locale}
+          freeSwipe={freeSwipe}
           onPressEvent={onPressEvent}
           onPressCell={onPressCell}
           onChangeDate={onChangeDate}

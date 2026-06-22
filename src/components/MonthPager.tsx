@@ -30,6 +30,7 @@ export type MonthPagerProps<T> = {
   onPressEvent: (event: CalendarEvent<T>) => void;
   onPressMore?: (events: CalendarEvent<T>[], date: Date) => void;
   onChangeDate: (date: Date) => void;
+  freeSwipe?: boolean;
 };
 
 function MonthPagerInner<T>({
@@ -43,6 +44,7 @@ function MonthPagerInner<T>({
   onPressEvent,
   onPressMore,
   onChangeDate,
+  freeSwipe = false,
 }: MonthPagerProps<T>) {
   const { width, height } = useWindowDimensions();
   const listRef = useRef<LegendListRef>(null);
@@ -137,10 +139,10 @@ function MonthPagerInner<T>({
         keyExtractor={keyExtractorList}
         getFixedItemSize={getFixedItemSize}
         snapToIndices={snapToIndices}
-        // One page per swipe: a fast fling stops at the adjacent month instead of
-        // skipping several. Pairs with the snap offsets LegendList derives from
-        // snapToIndices.
-        disableIntervalMomentum
+        // Default: one page per swipe — a fast fling stops at the adjacent month
+        // instead of skipping several. With `freeSwipe`, momentum carries across
+        // multiple months and still snaps to a page boundary.
+        disableIntervalMomentum={!freeSwipe}
         initialScrollIndex={activeIndex}
         showsHorizontalScrollIndicator={false}
         viewabilityConfig={PAGE_VIEWABILITY}

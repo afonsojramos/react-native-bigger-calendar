@@ -482,6 +482,7 @@ export type TimeGridProps<T> = {
   maxHourHeight?: number;
   showNowIndicator?: boolean;
   locale?: string;
+  freeSwipe?: boolean;
   onPressEvent: (event: CalendarEvent<T>) => void;
   onPressCell?: (date: Date) => void;
   onChangeDate: (date: Date) => void;
@@ -507,6 +508,7 @@ function TimeGridInner<T>({
   maxHourHeight = DEFAULT_MAX_HOUR_HEIGHT,
   showNowIndicator = true,
   locale,
+  freeSwipe = false,
   onPressEvent,
   onPressCell,
   onChangeDate,
@@ -674,9 +676,10 @@ function TimeGridInner<T>({
           keyExtractor={keyExtractorList}
           getFixedItemSize={getFixedItemSize}
           snapToIndices={snapToIndices}
-          // One page per swipe: a fast fling stops at the adjacent date instead
-          // of skipping several.
-          disableIntervalMomentum
+          // Default: one page per swipe — a fast fling stops at the adjacent
+          // date instead of skipping several. With `freeSwipe`, momentum carries
+          // across multiple pages and still snaps to a page boundary.
+          disableIntervalMomentum={!freeSwipe}
           initialScrollIndex={activeIndex}
           showsHorizontalScrollIndicator={false}
           viewabilityConfig={PAGE_VIEWABILITY}
