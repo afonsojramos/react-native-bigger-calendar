@@ -663,6 +663,9 @@ function TimeGridInner<T>({
         onLayout={(event) => setPageHeight(event.nativeEvent.layout.height)}
       >
         <LegendList
+          // Remount when the measured page height changes so the list adopts
+          // the corrected item height (avoids keeping the oversized window seed).
+          key={pageHeight}
           ref={listRef}
           style={styles.pagerList}
           data={pageDates}

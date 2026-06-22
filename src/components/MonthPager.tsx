@@ -125,6 +125,10 @@ function MonthPagerInner<T>({
   return (
     <View style={styles.pager} onLayout={(event) => setPageHeight(event.nativeEvent.layout.height)}>
       <LegendList
+        // Remount when the measured page height changes so the list adopts the
+        // corrected item height. Without this the list can keep the oversized
+        // initial (window-height) seed and clip the last week row.
+        key={pageHeight}
         ref={listRef}
         style={styles.pagerList}
         data={monthDates}
