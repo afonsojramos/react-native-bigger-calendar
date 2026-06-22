@@ -82,6 +82,14 @@ function useNow(enabled: boolean): Date {
   return now;
 }
 
+// "13" in 24h, or "1 PM" in 12h. Midnight/noon read as 12 AM / 12 PM.
+function formatHourLabel(hour: number, ampm: boolean): string {
+  if (!ampm) return String(hour);
+  const period = hour < 12 ? 'AM' : 'PM';
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${hour12} ${period}`;
+}
+
 type AnimatedEventBoxProps<T> = {
   positioned: PositionedEvent<T>;
   cellHeight: SharedValue<number>;
@@ -210,6 +218,7 @@ type TimetablePageProps<T> = {
   hourColumnWidth: number;
   minHour: number;
   maxHour: number;
+  ampm: boolean;
   minHourHeight: number;
   maxHourHeight: number;
   showNowIndicator: boolean;
@@ -235,6 +244,7 @@ function TimetablePageInner<T>({
   hourColumnWidth,
   minHour,
   maxHour,
+  ampm,
   minHourHeight,
   maxHourHeight,
   showNowIndicator,
@@ -402,7 +412,7 @@ function TimetablePageInner<T>({
                 minHour={minHour}
                 cellHeight={heightSource}
                 hourColumnWidth={hourColumnWidth}
-                label={String(hour)}
+                label={formatHourLabel(hour, ampm)}
               />
             ))}
 
@@ -462,6 +472,8 @@ export type TimeGridProps<T> = {
   minHour?: number;
   /** Last hour shown, exclusive (1–24). Default 24. */
   maxHour?: number;
+  /** Show hour labels in 12-hour AM/PM form. Default false (24h). */
+  ampm?: boolean;
   minHourHeight?: number;
   maxHourHeight?: number;
   showNowIndicator?: boolean;
@@ -485,6 +497,7 @@ function TimeGridInner<T>({
   hourColumnWidth = DEFAULT_HOUR_COLUMN_WIDTH,
   minHour = 0,
   maxHour = HOURS_PER_DAY,
+  ampm = false,
   minHourHeight = DEFAULT_MIN_HOUR_HEIGHT,
   maxHourHeight = DEFAULT_MAX_HOUR_HEIGHT,
   showNowIndicator = true,
@@ -586,6 +599,7 @@ function TimeGridInner<T>({
           hourColumnWidth={hourColumnWidth}
           minHour={clampedMinHour}
           maxHour={clampedMaxHour}
+          ampm={ampm}
           minHourHeight={minHourHeight}
           maxHourHeight={maxHourHeight}
           showNowIndicator={showNowIndicator}
@@ -610,6 +624,7 @@ function TimeGridInner<T>({
       hourColumnWidth,
       clampedMinHour,
       clampedMaxHour,
+      ampm,
       minHourHeight,
       maxHourHeight,
       showNowIndicator,
