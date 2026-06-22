@@ -42,6 +42,7 @@ import type {
 } from '../types';
 import { getIsToday, getWeekDays, isWeekend } from '../utils/dates';
 import { layoutDayEvents, type PositionedEvent } from '../utils/layout';
+import { useSwipeCap } from '../utils/useSwipeCap';
 
 const MINUTES_PER_HOUR = 60;
 const HOURS_PER_DAY = 24;
@@ -590,6 +591,8 @@ function TimeGridInner<T>({
   }, [activeIndex]);
 
   const snapToIndices = useMemo(() => pageDates.map((_, index) => index), [pageDates]);
+  // Enforce one-page-per-swipe (LegendList ignores disableIntervalMomentum).
+  const { onScrollBeginDrag, onMomentumScrollEnd } = useSwipeCap(listRef, width, !freeSwipe);
   const keyExtractorList = useCallback((item: Date) => item.toISOString(), []);
   const getFixedItemSize = useCallback(() => width, [width]);
   const renderItem = useCallback(
@@ -680,6 +683,8 @@ function TimeGridInner<T>({
           // date instead of skipping several. With `freeSwipe`, momentum carries
           // across multiple pages and still snaps to a page boundary.
           disableIntervalMomentum={!freeSwipe}
+          onScrollBeginDrag={onScrollBeginDrag}
+          onMomentumScrollEnd={onMomentumScrollEnd}
           initialScrollIndex={activeIndex}
           showsHorizontalScrollIndicator={false}
           viewabilityConfig={PAGE_VIEWABILITY}

@@ -8,6 +8,7 @@ import { addMonths, differenceInCalendarMonths, startOfMonth } from 'date-fns';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import type { CalendarEvent, EventKeyExtractor, RenderEvent, WeekStartsOn } from '../types';
+import { useSwipeCap } from '../utils/useSwipeCap';
 import { MonthView } from './MonthView';
 
 // Months rendered either side of the current page. LegendList virtualises, so
@@ -92,6 +93,8 @@ function MonthPagerInner<T>({
   }, [activeIndex]);
 
   const snapToIndices = useMemo(() => monthDates.map((_, index) => index), [monthDates]);
+  // Enforce one-month-per-swipe (LegendList ignores disableIntervalMomentum).
+  const { onScrollBeginDrag, onMomentumScrollEnd } = useSwipeCap(listRef, width, !freeSwipe);
   const keyExtractorList = useCallback((item: Date) => item.toISOString(), []);
   const getFixedItemSize = useCallback(() => width, [width]);
   const renderItem = useCallback(
@@ -143,6 +146,8 @@ function MonthPagerInner<T>({
         // instead of skipping several. With `freeSwipe`, momentum carries across
         // multiple months and still snaps to a page boundary.
         disableIntervalMomentum={!freeSwipe}
+        onScrollBeginDrag={onScrollBeginDrag}
+        onMomentumScrollEnd={onMomentumScrollEnd}
         initialScrollIndex={activeIndex}
         showsHorizontalScrollIndicator={false}
         viewabilityConfig={PAGE_VIEWABILITY}
