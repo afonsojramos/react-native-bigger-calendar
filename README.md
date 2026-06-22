@@ -28,16 +28,21 @@ an homage. 🙇
   the event box's live pixel height for progressive disclosure as the grid zooms.
 
 **Feature parity.** It also covers the rest of react-native-big-calendar's
-surface: month / day / 3-day / week / **custom N-day** / **agenda (`schedule`)**
-modes, **all-day events** (lane + `allDay` flag), multi-day clipping, `minHour`/
-`maxHour`, `ampm`, `timeslots`, `hideHours`, `showWeekNumber`, `sortedMonthView`,
-`moreLabel`, `showAdjacentMonths`, `disableMonthEventCellPress`, per-event
+surface: month / day / 3-day / week / **custom N-day** (and `weekEndsOn`
+partial-weeks) / **agenda (`schedule`)** modes, **all-day events** (lane +
+`allDay` flag), multi-day clipping, `minHour`/`maxHour`, `ampm` (hour axis and
+event times), `showTime`, `timeslots`, `hideHours`, `showWeekNumber`,
+`weekNumberPrefix`, `hourComponent`, `sortedMonthView`, `moreLabel`,
+`showAdjacentMonths`, `showSixWeeks`, `disableMonthEventCellPress`, a default
+month weekday header (`renderHeaderForMonthView`), `activeDate`, per-event
 `disabled`, `onPress`/`onLongPress` for events, cells and date headers,
-`eventCellStyle`, `calendarCellStyle`, a `headerComponent` slot, date-fns
-`locale`, right-to-left column order (`isRTL`), and theming. Text styling that
-big-calendar exposes via `calendarCellTextStyle` is covered by
-`CalendarTheme.text`; overlapping events are laid out in side-by-side columns
-automatically.
+`onChangeDateRange`, `resetPageOnPressCell`, `swipeEnabled`,
+`verticalScrollEnabled`, `showVerticalScrollIndicator`, an agenda
+`itemSeparatorComponent`, `eventCellStyle`, `calendarCellStyle`, a
+`headerComponent` slot, date-fns `locale`, right-to-left column order (`isRTL`),
+and theming. Text styling that big-calendar exposes via `calendarCellTextStyle`
+is covered by `CalendarTheme.text`; overlapping events are laid out in
+side-by-side columns automatically.
 
 **Trade-offs (where react-native-big-calendar may suit you better)**
 
