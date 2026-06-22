@@ -36,8 +36,8 @@ import type {
 import { getIsToday, getWeekDays, isWeekend } from '../utils/dates';
 import { layoutDayEvents, type PositionedEvent } from '../utils/layout';
 
-const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 const MINUTES_PER_HOUR = 60;
+const HOURS_PER_DAY = 24;
 // Days (day view) or weeks (week view) to step when paging to an adjacent page.
 const DAY_VIEW_STEP = 1;
 const WEEK_VIEW_STEP = 7;
@@ -78,6 +78,7 @@ function useNow(enabled: boolean): Date {
 type AnimatedEventBoxProps<T> = {
   positioned: PositionedEvent<T>;
   cellHeight: SharedValue<number>;
+  minHour: number;
   left: number;
   width: number;
   mode: CalendarMode;
@@ -88,6 +89,7 @@ type AnimatedEventBoxProps<T> = {
 function AnimatedEventBox<T>({
   positioned,
   cellHeight,
+  minHour,
   left,
   width,
   mode,
@@ -106,10 +108,10 @@ function AnimatedEventBox<T>({
 
   const boxStyle = useAnimatedStyle(
     () => ({
-      top: positioned.startHours * cellHeight.value,
+      top: (positioned.startHours - minHour) * cellHeight.value,
       height: boxHeight.value,
     }),
-    [positioned.startHours, positioned.durationHours],
+    [positioned.startHours, positioned.durationHours, minHour],
   );
 
   const handlePress = () => onPress(positioned.event);
@@ -130,16 +132,21 @@ function AnimatedEventBox<T>({
 
 type HourRowProps = {
   hour: number;
+  minHour: number;
   cellHeight: SharedValue<number>;
   hourColumnWidth: number;
+  label: string;
 };
 
-const HourRow = ({ hour, cellHeight, hourColumnWidth }: HourRowProps) => {
+const HourRow = ({ hour, minHour, cellHeight, hourColumnWidth, label }: HourRowProps) => {
   const theme = useCalendarTheme();
   // Position via `top` (a layout prop), not a transform. The per-row layout pass
   // as cellHeight animates keeps the ScrollView's content size in sync while
   // zooming; a transform is composited and leaves the scroll range stale.
-  const animatedStyle = useAnimatedStyle(() => ({ top: hour * cellHeight.value }));
+  const animatedStyle = useAnimatedStyle(
+    () => ({ top: (hour - minHour) * cellHeight.value }),
+    [hour, minHour],
+  );
 
   return (
     <Animated.View style={[styles.hourRow, animatedStyle]} pointerEvents="none">
@@ -151,7 +158,7 @@ const HourRow = ({ hour, cellHeight, hourColumnWidth }: HourRowProps) => {
         ]}
         allowFontScaling={false}
       >
-        {hour}
+        {label}
       </Text>
       <View style={[styles.hourLine, { backgroundColor: theme.colors.gridLine }]} />
     </Animated.View>
@@ -161,12 +168,16 @@ const HourRow = ({ hour, cellHeight, hourColumnWidth }: HourRowProps) => {
 type NowIndicatorProps = {
   cellHeight: SharedValue<number>;
   nowHours: number;
+  minHour: number;
   left: number;
   color: string;
 };
 
-const NowIndicator = ({ cellHeight, nowHours, left, color }: NowIndicatorProps) => {
-  const animatedStyle = useAnimatedStyle(() => ({ top: nowHours * cellHeight.value }));
+const NowIndicator = ({ cellHeight, nowHours, minHour, left, color }: NowIndicatorProps) => {
+  const animatedStyle = useAnimatedStyle(
+    () => ({ top: (nowHours - minHour) * cellHeight.value }),
+    [nowHours, minHour],
+  );
 
   return (
     <Animated.View
@@ -190,6 +201,8 @@ type TimetablePageProps<T> = {
   scrollOffsetMinutes: number;
   weekStartsOn: WeekStartsOn;
   hourColumnWidth: number;
+  minHour: number;
+  maxHour: number;
   minHourHeight: number;
   maxHourHeight: number;
   showNowIndicator: boolean;
@@ -212,6 +225,8 @@ function TimetablePageInner<T>({
   scrollOffsetMinutes,
   weekStartsOn,
   hourColumnWidth,
+  minHour,
+  maxHour,
   minHourHeight,
   maxHourHeight,
   showNowIndicator,
@@ -258,11 +273,21 @@ function TimetablePageInner<T>({
     [days, events],
   );
 
+  // The hours (rows/labels) visible in the window [minHour, maxHour).
+  const hoursRange = useMemo(
+    () => Array.from({ length: maxHour - minHour }, (_, index) => minHour + index),
+    [minHour, maxHour],
+  );
+
   const now = useNow(showNowIndicator && isActive);
   const nowDayIndex = days.findIndex((day) => getIsToday(day));
   const nowHours = (getHours(now) * MINUTES_PER_HOUR + getMinutes(now)) / MINUTES_PER_HOUR;
+  const nowInWindow = nowHours >= minHour && nowHours <= maxHour;
 
-  const fullHeightStyle = useAnimatedStyle(() => ({ height: 24 * heightSource.value }));
+  const fullHeightStyle = useAnimatedStyle(
+    () => ({ height: (maxHour - minHour) * heightSource.value }),
+    [minHour, maxHour, heightSource],
+  );
 
   // Capture the row height when the pinch starts and apply `event.scale`
   // (relative to that start) rather than multiplying per-frame deltas — deltas
@@ -302,7 +327,7 @@ function TimetablePageInner<T>({
           contentContainerStyle={{ paddingTop: HOUR_LABEL_TOP_INSET }}
           contentOffset={{
             x: 0,
-            y: (scrollOffsetMinutes / MINUTES_PER_HOUR) * cellHeight.value,
+            y: Math.max(0, scrollOffsetMinutes / MINUTES_PER_HOUR - minHour) * cellHeight.value,
           }}
         >
           <Animated.View style={[styles.content, fullHeightStyle]}>
@@ -334,37 +359,46 @@ function TimetablePageInner<T>({
               />
             ))}
 
-            {HOURS.map((hour) => (
+            {hoursRange.map((hour) => (
               <HourRow
                 key={hour}
                 hour={hour}
+                minHour={minHour}
                 cellHeight={heightSource}
                 hourColumnWidth={hourColumnWidth}
+                label={String(hour)}
               />
             ))}
 
             {dayLayouts.flatMap((layout, dayIndex) =>
-              layout.map((positioned, eventIndex) => {
-                const columnWidth = dayWidth / positioned.columns;
-                return (
-                  <AnimatedEventBox
-                    key={keyExtractor(positioned.event, eventIndex)}
-                    positioned={positioned}
-                    cellHeight={heightSource}
-                    left={dayLeft(dayIndex) + positioned.column * columnWidth}
-                    width={columnWidth}
-                    mode={mode}
-                    renderEvent={renderEvent}
-                    onPress={onPressEvent}
-                  />
-                );
-              }),
+              layout
+                // Skip events that fall entirely outside the [minHour, maxHour) window.
+                .filter(
+                  (p) => p.startHours < maxHour && p.startHours + p.durationHours > minHour,
+                )
+                .map((positioned, eventIndex) => {
+                  const columnWidth = dayWidth / positioned.columns;
+                  return (
+                    <AnimatedEventBox
+                      key={keyExtractor(positioned.event, eventIndex)}
+                      positioned={positioned}
+                      cellHeight={heightSource}
+                      minHour={minHour}
+                      left={dayLeft(dayIndex) + positioned.column * columnWidth}
+                      width={columnWidth}
+                      mode={mode}
+                      renderEvent={renderEvent}
+                      onPress={onPressEvent}
+                    />
+                  );
+                }),
             )}
 
-            {showNowIndicator && nowDayIndex >= 0 ? (
+            {showNowIndicator && nowDayIndex >= 0 && nowInWindow ? (
               <NowIndicator
                 cellHeight={heightSource}
                 nowHours={nowHours}
+                minHour={minHour}
                 left={dayLeft(nowDayIndex)}
                 color={theme.colors.nowIndicator}
               />
@@ -388,6 +422,10 @@ export type TimeGridProps<T> = {
   keyExtractor: EventKeyExtractor<T>;
   scrollOffsetMinutes?: number;
   hourColumnWidth?: number;
+  /** First hour shown (0–23). Default 0. */
+  minHour?: number;
+  /** Last hour shown, exclusive (1–24). Default 24. */
+  maxHour?: number;
   minHourHeight?: number;
   maxHourHeight?: number;
   showNowIndicator?: boolean;
@@ -408,6 +446,8 @@ function TimeGridInner<T>({
   keyExtractor,
   scrollOffsetMinutes = 0,
   hourColumnWidth = DEFAULT_HOUR_COLUMN_WIDTH,
+  minHour = 0,
+  maxHour = HOURS_PER_DAY,
   minHourHeight = DEFAULT_MIN_HOUR_HEIGHT,
   maxHourHeight = DEFAULT_MAX_HOUR_HEIGHT,
   showNowIndicator = true,
@@ -416,6 +456,10 @@ function TimeGridInner<T>({
   onChangeDate,
   renderHeader,
 }: TimeGridProps<T>) {
+  // Guard against an inverted/out-of-range window so the grid never collapses.
+  const clampedMinHour = Math.max(0, Math.min(minHour, HOURS_PER_DAY - 1));
+  const clampedMaxHour = Math.max(clampedMinHour + 1, Math.min(maxHour, HOURS_PER_DAY));
+
   const { width, height } = useWindowDimensions();
   const listRef = useRef<LegendListRef>(null);
   // Horizontal list items need an explicit cross-axis height; seed it with the
@@ -423,7 +467,9 @@ function TimeGridInner<T>({
   const [pageHeight, setPageHeight] = useState(height);
   const step = mode === 'week' ? WEEK_VIEW_STEP : DAY_VIEW_STEP;
   // Shared vertical scroll offset so every mounted page stays aligned.
-  const scrollY = useSharedValue((scrollOffsetMinutes / MINUTES_PER_HOUR) * cellHeight.value);
+  const scrollY = useSharedValue(
+    Math.max(0, scrollOffsetMinutes / MINUTES_PER_HOUR - clampedMinHour) * cellHeight.value,
+  );
   // Zoom committed at the end of the last pinch; off-screen pages animate off
   // this so they don't re-run their worklets every frame while the visible page
   // zooms.
@@ -500,6 +546,8 @@ function TimeGridInner<T>({
           scrollOffsetMinutes={scrollOffsetMinutes}
           weekStartsOn={weekStartsOn}
           hourColumnWidth={hourColumnWidth}
+          minHour={clampedMinHour}
+          maxHour={clampedMaxHour}
           minHourHeight={minHourHeight}
           maxHourHeight={maxHourHeight}
           showNowIndicator={showNowIndicator}
@@ -521,6 +569,8 @@ function TimeGridInner<T>({
       scrollOffsetMinutes,
       weekStartsOn,
       hourColumnWidth,
+      clampedMinHour,
+      clampedMaxHour,
       minHourHeight,
       maxHourHeight,
       showNowIndicator,

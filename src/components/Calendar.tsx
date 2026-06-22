@@ -39,6 +39,10 @@ export type CalendarProps<T> = {
   minHourHeight?: number;
   maxHourHeight?: number;
   hourColumnWidth?: number;
+  /** First hour shown on the week/day grid (0–23). Default 0. */
+  minHour?: number;
+  /** Last hour shown on the week/day grid, exclusive (1–24). Default 24. */
+  maxHour?: number;
   /** Initial vertical scroll, in minutes from midnight (week/day). */
   scrollOffsetMinutes?: number;
   /** Show the current-time line on the week/day grid. Default true. */
@@ -73,6 +77,8 @@ export function Calendar<T>({
   minHourHeight,
   maxHourHeight,
   hourColumnWidth,
+  minHour,
+  maxHour,
   scrollOffsetMinutes,
   showNowIndicator,
   locale,
@@ -108,6 +114,8 @@ export function Calendar<T>({
           keyExtractor={keyExtractor}
           scrollOffsetMinutes={scrollOffsetMinutes}
           hourColumnWidth={hourColumnWidth}
+          minHour={minHour}
+          maxHour={maxHour}
           minHourHeight={minHourHeight}
           maxHourHeight={maxHourHeight}
           showNowIndicator={showNowIndicator}
