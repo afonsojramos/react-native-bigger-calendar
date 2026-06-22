@@ -103,6 +103,8 @@ export type CalendarProps<T> = {
   showNowIndicator?: boolean;
   /** A date-fns `Locale` for weekday/date labels. Defaults to English. */
   locale?: Locale;
+  /** Highlight this date (header/cell/agenda) instead of the real "today". */
+  activeDate?: Date;
   /**
    * Lay the day columns out right-to-left (month, week/day grid and all-day lane).
    * Cosmetic only: the hour gutter stays on the left and paging still advances
@@ -177,6 +179,7 @@ export function Calendar<T>({
   scrollOffsetMinutes,
   showNowIndicator,
   locale,
+  activeDate,
   isRTL,
   freeSwipe,
   renderTimeGridHeader,
@@ -232,6 +235,7 @@ export function Calendar<T>({
           disableMonthEventCellPress={disableMonthEventCellPress}
           isRTL={isRTL}
           showSixWeeks={showSixWeeks}
+          activeDate={activeDate}
           renderHeaderForMonthView={renderHeaderForMonthView}
           calendarCellStyle={calendarCellStyle}
           renderEvent={resolvedRenderEvent}
@@ -254,6 +258,7 @@ export function Calendar<T>({
           onPressEvent={handlePressEvent}
           onLongPressEvent={handleLongPressEvent}
           onPressDay={onPressDay}
+          activeDate={activeDate}
           itemSeparatorComponent={itemSeparatorComponent}
         />
       ) : (
@@ -285,6 +290,7 @@ export function Calendar<T>({
           maxHourHeight={maxHourHeight}
           showNowIndicator={showNowIndicator}
           locale={locale}
+          activeDate={activeDate}
           isRTL={isRTL}
           freeSwipe={freeSwipe}
           swipeEnabled={swipeEnabled}

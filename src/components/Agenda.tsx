@@ -14,6 +14,8 @@ export type AgendaProps<T> = {
   onPressEvent: (event: CalendarEvent<T>) => void;
   onLongPressEvent?: (event: CalendarEvent<T>) => void;
   onPressDay?: (date: Date) => void;
+  /** Highlight this date's header instead of the real "today". */
+  activeDate?: Date;
   /** Drawn between rows of the agenda list. */
   itemSeparatorComponent?: ComponentType<unknown> | null;
 };
@@ -35,6 +37,7 @@ export function Agenda<T>({
   onPressEvent,
   onLongPressEvent,
   onPressDay,
+  activeDate,
   itemSeparatorComponent,
 }: AgendaProps<T>) {
   const theme = useCalendarTheme();
@@ -58,13 +61,15 @@ export function Agenda<T>({
   const renderItem = useCallback(
     ({ item }: LegendListRenderItemProps<Row<T>>) => {
       if (item.kind === 'header') {
-        const isToday = getIsToday(item.date);
+        const isHighlighted = activeDate
+          ? isSameDay(item.date, activeDate)
+          : getIsToday(item.date);
         return (
           <Text
             style={[
               theme.text.weekday,
               styles.header,
-              { color: isToday ? theme.colors.todayBackground : theme.colors.textMuted },
+              { color: isHighlighted ? theme.colors.todayBackground : theme.colors.textMuted },
             ]}
             onPress={onPressDay ? () => onPressDay(item.date) : undefined}
             accessibilityRole={onPressDay ? 'button' : 'header'}
@@ -84,7 +89,7 @@ export function Agenda<T>({
         </View>
       );
     },
-    [theme, locale, onPressDay, onPressEvent, onLongPressEvent, RenderEventComponent],
+    [theme, locale, activeDate, onPressDay, onPressEvent, onLongPressEvent, RenderEventComponent],
   );
 
   return (

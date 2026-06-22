@@ -46,7 +46,7 @@ import type {
   TimeGridMode,
   WeekStartsOn,
 } from '../types';
-import { getIsToday, getViewDays, isWeekend, viewDayCount } from '../utils/dates';
+import { getIsToday, getViewDays, isSameCalendarDay, isWeekend, viewDayCount } from '../utils/dates';
 import { layoutDayEvents, type PositionedEvent } from '../utils/layout';
 import { AllDayLane } from './AllDayLane';
 
@@ -629,6 +629,8 @@ export type TimeGridProps<T> = {
   weekNumberPrefix?: string;
   /** Replace the hour-axis label. Receives the hour (0–23) and `ampm`. */
   hourComponent?: HourRenderer;
+  /** Highlight this date in the header instead of the real "today". */
+  activeDate?: Date;
   /** After an empty-cell press, snap the pager back to the active page. Default false. */
   resetPageOnPressCell?: boolean;
   onPressEvent: (event: CalendarEvent<T>) => void;
@@ -673,6 +675,7 @@ function TimeGridInner<T>({
   verticalScrollEnabled = true,
   weekNumberPrefix = 'W',
   hourComponent,
+  activeDate,
   resetPageOnPressCell = false,
   onPressEvent,
   onLongPressEvent,
@@ -861,6 +864,7 @@ function TimeGridInner<T>({
           showWeekNumber={showWeekNumber}
           weekNumberPrefix={weekNumberPrefix}
           locale={locale}
+          activeDate={activeDate}
           onPressDateHeader={onPressDateHeader}
         />
       )}
@@ -909,6 +913,7 @@ type DefaultHeaderProps = {
   showWeekNumber?: boolean;
   weekNumberPrefix?: string;
   locale?: Locale;
+  activeDate?: Date;
   onPressDateHeader?: (date: Date) => void;
 };
 
@@ -920,6 +925,7 @@ const DefaultHeader = ({
   showWeekNumber,
   weekNumberPrefix = 'W',
   locale,
+  activeDate,
   onPressDateHeader,
 }: DefaultHeaderProps) => {
   const theme = useCalendarTheme();
@@ -945,6 +951,7 @@ const DefaultHeader = ({
           mode={mode}
           width={dayWidth}
           locale={locale}
+          activeDate={activeDate}
           onPressDateHeader={onPressDateHeader}
         />
       ))}
@@ -957,12 +964,15 @@ type DayHeaderProps = {
   mode: CalendarMode;
   width: number;
   locale?: Locale;
+  activeDate?: Date;
   onPressDateHeader?: (date: Date) => void;
 };
 
-const DayHeader = ({ day, mode, width, locale, onPressDateHeader }: DayHeaderProps) => {
+const DayHeader = ({ day, mode, width, locale, activeDate, onPressDateHeader }: DayHeaderProps) => {
   const theme = useCalendarTheme();
   const isToday = getIsToday(day);
+  // Highlight the chosen `activeDate` when supplied, else the real today.
+  const isHighlighted = activeDate ? isSameCalendarDay(day, activeDate) : isToday;
   const badgeSize = mode === 'day' ? 44 : 32;
 
   return (
@@ -975,7 +985,7 @@ const DayHeader = ({ day, mode, width, locale, onPressDateHeader }: DayHeaderPro
       <View
         style={[
           styles.dayHeaderBadge,
-          isToday && {
+          isHighlighted && {
             backgroundColor: theme.colors.todayBackground,
             borderRadius: 999,
             width: badgeSize,
@@ -986,7 +996,7 @@ const DayHeader = ({ day, mode, width, locale, onPressDateHeader }: DayHeaderPro
         <Text
           style={[
             theme.text.dayNumber,
-            { color: isToday ? theme.colors.todayText : theme.colors.text },
+            { color: isHighlighted ? theme.colors.todayText : theme.colors.text },
           ]}
           allowFontScaling={false}
           {...(isToday && { accessibilityLabel: `Today, ${day.getDate()}` })}

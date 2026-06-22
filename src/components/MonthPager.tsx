@@ -51,6 +51,7 @@ export type MonthPagerProps<T> = {
   freeSwipe?: boolean;
   swipeEnabled?: boolean;
   showSixWeeks?: boolean;
+  activeDate?: Date;
   /** Replace the weekday-label header above the month grid. Receives the week's days. */
   renderHeaderForMonthView?: (weekDays: Date[]) => React.ReactNode;
 };
@@ -78,6 +79,7 @@ function MonthPagerInner<T>({
   freeSwipe = false,
   swipeEnabled = true,
   showSixWeeks = false,
+  activeDate,
   renderHeaderForMonthView,
 }: MonthPagerProps<T>) {
   const { width, height } = useWindowDimensions();
@@ -151,6 +153,7 @@ function MonthPagerInner<T>({
           disableMonthEventCellPress={disableMonthEventCellPress}
           isRTL={isRTL}
           showSixWeeks={showSixWeeks}
+          activeDate={activeDate}
           calendarCellStyle={calendarCellStyle}
           renderEvent={renderEvent}
           keyExtractor={keyExtractor}
@@ -175,6 +178,7 @@ function MonthPagerInner<T>({
       disableMonthEventCellPress,
       isRTL,
       showSixWeeks,
+      activeDate,
       calendarCellStyle,
       renderEvent,
       keyExtractor,

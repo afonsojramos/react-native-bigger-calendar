@@ -14,7 +14,7 @@ import { memo, useMemo } from 'react';
 import { StyleSheet, type StyleProp, Text, TouchableOpacity, View, type ViewStyle } from 'react-native';
 import { useCalendarTheme } from '../theme';
 import type { CalendarEvent, EventKeyExtractor, RenderEvent, WeekStartsOn } from '../types';
-import { getIsToday, isWeekend } from '../utils/dates';
+import { getIsToday, isSameCalendarDay, isWeekend } from '../utils/dates';
 import { eventDayKeys, isAllDayEvent } from '../utils/layout';
 
 const chunkIntoWeeks = (days: Date[]): Date[][] => {
@@ -43,6 +43,8 @@ export type MonthViewProps<T> = {
   isRTL?: boolean;
   /** Always render six week rows, for a fixed-height grid. Default false. */
   showSixWeeks?: boolean;
+  /** Highlight this date instead of the real "today". */
+  activeDate?: Date;
   /** Per-date style merged onto the day cell. */
   calendarCellStyle?: (date: Date) => StyleProp<ViewStyle>;
   renderEvent: RenderEvent<T>;
@@ -66,6 +68,7 @@ function MonthViewInner<T>({
   disableMonthEventCellPress = false,
   isRTL = false,
   showSixWeeks = false,
+  activeDate,
   calendarCellStyle,
   renderEvent,
   keyExtractor,
@@ -125,9 +128,11 @@ function MonthViewInner<T>({
 
     const dayEvents = eventsByDay.get(startOfDay(day).toISOString()) ?? [];
     const isToday = getIsToday(day);
+    // Highlight the chosen `activeDate` when supplied, else the real today.
+    const isHighlighted = activeDate ? isSameCalendarDay(day, activeDate) : isToday;
     const hiddenCount = dayEvents.length - maxVisibleEventCount;
 
-    const dateColor = isToday
+    const dateColor = isHighlighted
       ? theme.colors.todayText
       : isCurrentMonth
         ? theme.colors.text
@@ -156,7 +161,7 @@ function MonthViewInner<T>({
         <View
           style={[
             styles.dateBadge,
-            isToday && {
+            isHighlighted && {
               backgroundColor: theme.colors.todayBackground,
               borderRadius: theme.todayBadgeRadius,
             },
