@@ -61,6 +61,12 @@ export type CalendarProps<T> = {
   minHourHeight?: number;
   maxHourHeight?: number;
   hourColumnWidth?: number;
+  /** Hide the left hour-axis column on the week/day grid. Default false. */
+  hideHours?: boolean;
+  /** Show the ISO week number in the week/day header gutter. Default false. */
+  showWeekNumber?: boolean;
+  /** Element rendered between the day header and the week/day grid. */
+  headerComponent?: React.ReactNode;
   /** First hour shown on the week/day grid (0–23). Default 0. */
   minHour?: number;
   /** Last hour shown on the week/day grid, exclusive (1–24). Default 24. */
@@ -116,6 +122,9 @@ export function Calendar<T>({
   minHourHeight,
   maxHourHeight,
   hourColumnWidth,
+  hideHours,
+  showWeekNumber,
+  headerComponent,
   minHour,
   maxHour,
   ampm,
@@ -192,6 +201,9 @@ export function Calendar<T>({
           keyExtractor={keyExtractor}
           scrollOffsetMinutes={scrollOffsetMinutes}
           hourColumnWidth={hourColumnWidth}
+          hideHours={hideHours}
+          showWeekNumber={showWeekNumber}
+          headerComponent={headerComponent}
           minHour={minHour}
           maxHour={maxHour}
           ampm={ampm}

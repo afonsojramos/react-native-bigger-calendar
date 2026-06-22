@@ -9,6 +9,7 @@ import {
   differenceInCalendarDays,
   format,
   getHours,
+  getISOWeek,
   getMinutes,
   type Locale,
   startOfDay,
@@ -505,6 +506,12 @@ export type TimeGridProps<T> = {
   keyExtractor: EventKeyExtractor<T>;
   scrollOffsetMinutes?: number;
   hourColumnWidth?: number;
+  /** Hide the left hour-axis column (lines stay, labels/gutter go). Default false. */
+  hideHours?: boolean;
+  /** Show the ISO week number in the header gutter. Default false. */
+  showWeekNumber?: boolean;
+  /** Element rendered between the day header and the grid. */
+  headerComponent?: React.ReactNode;
   /** First hour shown (0–23). Default 0. */
   minHour?: number;
   /** Last hour shown, exclusive (1–24). Default 24. */
@@ -538,7 +545,10 @@ function TimeGridInner<T>({
   renderEvent,
   keyExtractor,
   scrollOffsetMinutes = 0,
-  hourColumnWidth = DEFAULT_HOUR_COLUMN_WIDTH,
+  hourColumnWidth: hourColumnWidthProp = DEFAULT_HOUR_COLUMN_WIDTH,
+  hideHours = false,
+  showWeekNumber = false,
+  headerComponent,
   minHour = 0,
   maxHour = HOURS_PER_DAY,
   ampm = false,
@@ -558,6 +568,8 @@ function TimeGridInner<T>({
   // Guard against an inverted/out-of-range window so the grid never collapses.
   const clampedMinHour = Math.max(0, Math.min(minHour, HOURS_PER_DAY - 1));
   const clampedMaxHour = Math.max(clampedMinHour + 1, Math.min(maxHour, HOURS_PER_DAY));
+  // Collapse the hour gutter to zero when hours are hidden.
+  const hourColumnWidth = hideHours ? 0 : hourColumnWidthProp;
 
   const { width, height } = useWindowDimensions();
   const listRef = useRef<LegendListRef>(null);
@@ -706,10 +718,13 @@ function TimeGridInner<T>({
           mode={mode}
           width={width}
           hourColumnWidth={hourColumnWidth}
+          showWeekNumber={showWeekNumber}
           locale={locale}
           onPressDateHeader={onPressDateHeader}
         />
       )}
+
+      {headerComponent}
 
       <View
         style={styles.pager}
@@ -749,6 +764,7 @@ type DefaultHeaderProps = {
   mode: CalendarMode;
   width: number;
   hourColumnWidth: number;
+  showWeekNumber?: boolean;
   locale?: Locale;
   onPressDateHeader?: (date: Date) => void;
 };
@@ -758,15 +774,26 @@ const DefaultHeader = ({
   mode,
   width,
   hourColumnWidth,
+  showWeekNumber,
   locale,
   onPressDateHeader,
 }: DefaultHeaderProps) => {
+  const theme = useCalendarTheme();
   // Match the grid below: an hour-column spacer, then one column per day.
   const dayWidth = (width - hourColumnWidth) / days.length;
 
   return (
     <View style={styles.headerRow}>
-      <View style={{ width: hourColumnWidth }} />
+      <View style={[styles.weekNumberGutter, { width: hourColumnWidth }]}>
+        {showWeekNumber && hourColumnWidth > 0 && days[0] ? (
+          <Text
+            style={[theme.text.hourLabel, { color: theme.colors.textMuted }]}
+            allowFontScaling={false}
+          >
+            {`W${getISOWeek(days[0])}`}
+          </Text>
+        ) : null}
+      </View>
       {days.map((day) => (
         <DayHeader
           key={day.toISOString()}
@@ -844,6 +871,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingBottom: 8,
+  },
+  weekNumberGutter: {
+    alignItems: 'center',
+    justifyContent: 'flex-end',
   },
   dayHeader: {
     alignItems: 'center',
