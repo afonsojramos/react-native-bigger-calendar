@@ -5,7 +5,7 @@ import { Calendar, type CalendarEvent, type CalendarMode } from 'react-native-bi
 
 type EventMeta = { id: string; kind: 'lecture' | 'lab' | 'exam' };
 
-const MODES: CalendarMode[] = ['month', 'week', 'day'];
+const MODES: CalendarMode[] = ['month', 'week', '3days', 'day', 'schedule'];
 
 // Events anchored to "today" so the demo is always populated.
 function buildEvents(): CalendarEvent<EventMeta>[] {

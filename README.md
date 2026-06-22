@@ -145,9 +145,11 @@ See `CalendarTheme` for the full set of tokens. Anything you omit falls back to
 
 ### Modes
 
-`mode` is one of `month`, `week`, `day`, `3days`, or `custom`. For `custom`, set
-`numberOfDays` (e.g. `mode="custom" numberOfDays={5}` for a work-week). Day/3-day/
-custom views page by their column count; `week` pages by the calendar week.
+`mode` is one of `month`, `week`, `day`, `3days`, `custom`, or `schedule`. For
+`custom`, set `numberOfDays` (e.g. `mode="custom" numberOfDays={5}` for a
+work-week). Day/3-day/custom views page by their column count; `week` pages by
+the calendar week. `schedule` is a vertical, day-grouped agenda list of the
+events you pass (no time grid).
 
 ### Localization
 

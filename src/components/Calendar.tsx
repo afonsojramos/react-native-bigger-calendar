@@ -9,6 +9,7 @@ import type {
   RenderEvent,
   WeekStartsOn,
 } from '../types';
+import { Agenda } from './Agenda';
 import { DefaultEvent } from './DefaultEvent';
 import { MonthPager } from './MonthPager';
 import { DEFAULT_HOUR_HEIGHT, TimeGrid } from './TimeGrid';
@@ -131,6 +132,16 @@ export function Calendar<T>({
           onPressMore={onPressMore}
           onChangeDate={onChangeDate}
           freeSwipe={freeSwipe}
+        />
+      ) : mode === 'schedule' ? (
+        <Agenda
+          events={events}
+          locale={locale}
+          renderEvent={renderEvent}
+          keyExtractor={keyExtractor}
+          onPressEvent={onPressEvent}
+          onLongPressEvent={onLongPressEvent}
+          onPressDay={onPressDay}
         />
       ) : (
         <TimeGrid

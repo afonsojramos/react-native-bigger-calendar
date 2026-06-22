@@ -1,4 +1,5 @@
 export { Calendar, type CalendarProps } from './components/Calendar';
+export { Agenda, type AgendaProps } from './components/Agenda';
 export { MonthView, type MonthViewProps } from './components/MonthView';
 export { MonthPager, type MonthPagerProps } from './components/MonthPager';
 export { TimeGrid, type TimeGridProps, DEFAULT_HOUR_HEIGHT } from './components/TimeGrid';
