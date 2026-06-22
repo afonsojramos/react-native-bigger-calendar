@@ -1,4 +1,12 @@
-import type { Locale } from 'date-fns';
+import {
+  endOfDay,
+  endOfMonth,
+  endOfWeek,
+  type Locale,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+} from 'date-fns';
 import { useCallback, useMemo } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
@@ -11,6 +19,7 @@ import type {
   RenderEventArgs,
   WeekStartsOn,
 } from '../types';
+import { getViewDays } from '../utils/dates';
 import { Agenda } from './Agenda';
 import { DefaultEvent } from './DefaultEvent';
 import { MonthPager } from './MonthPager';
@@ -21,6 +30,8 @@ export type CalendarProps<T> = {
   mode: CalendarMode;
   date: Date;
   onChangeDate: (date: Date) => void;
+  /** Fired alongside `onChangeDate` with the `[start, end]` of the newly-visible range. */
+  onChangeDateRange?: (range: [Date, Date]) => void;
   onPressEvent: (event: CalendarEvent<T>) => void;
   /** Long-press an event (month/week/day). */
   onLongPressEvent?: (event: CalendarEvent<T>) => void;
@@ -131,11 +142,30 @@ export type CalendarProps<T> = {
 const defaultKeyExtractor: EventKeyExtractor<unknown> = (event) =>
   `${event.start.toISOString()}|${event.end.toISOString()}|${event.title ?? ''}`;
 
+// The [start, end] of the dates a given mode shows around `date`. Month spans the
+// padded grid (whole weeks); time-grid modes span their day columns.
+function visibleRange(
+  mode: CalendarMode,
+  date: Date,
+  weekStartsOn: WeekStartsOn,
+  numberOfDays: number,
+): [Date, Date] {
+  if (mode === 'month') {
+    return [
+      startOfWeek(startOfMonth(date), { weekStartsOn }),
+      endOfWeek(endOfMonth(date), { weekStartsOn }),
+    ];
+  }
+  const days = getViewDays(mode, date, weekStartsOn, numberOfDays);
+  return [startOfDay(days[0]), endOfDay(days[days.length - 1])];
+}
+
 export function Calendar<T>({
   events,
   mode,
   date,
   onChangeDate,
+  onChangeDateRange,
   onPressEvent,
   onLongPressEvent,
   onPressDay,
@@ -207,6 +237,15 @@ export function Calendar<T>({
     [onLongPressEvent],
   );
 
+  // Echo every date change and, when asked, the full visible range derived from it.
+  const handleChangeDate = useCallback(
+    (next: Date) => {
+      onChangeDate(next);
+      onChangeDateRange?.(visibleRange(mode, next, weekStartsOn, numberOfDays ?? 1));
+    },
+    [onChangeDate, onChangeDateRange, mode, weekStartsOn, numberOfDays],
+  );
+
   // Inject `eventCellStyle`, `ampm` and `showTime` into the renderer once, so
   // every view gets them for free without threading the props through each
   // component. Skip the wrapper entirely when none are set.
@@ -245,7 +284,7 @@ export function Calendar<T>({
           onPressEvent={handlePressEvent}
           onLongPressEvent={handleLongPressEvent}
           onPressMore={onPressMore}
-          onChangeDate={onChangeDate}
+          onChangeDate={handleChangeDate}
           freeSwipe={freeSwipe}
           swipeEnabled={swipeEnabled}
         />
@@ -300,7 +339,7 @@ export function Calendar<T>({
           resetPageOnPressCell={resetPageOnPressCell}
           onLongPressCell={onLongPressCell}
           onPressDateHeader={onPressDateHeader}
-          onChangeDate={onChangeDate}
+          onChangeDate={handleChangeDate}
           renderHeader={renderTimeGridHeader}
         />
       )}
