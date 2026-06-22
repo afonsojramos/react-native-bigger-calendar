@@ -207,6 +207,7 @@ type TimetablePageProps<T> = {
   date: Date;
   events: CalendarEvent<T>[];
   cellHeight: SharedValue<number>;
+  hourHeight: number;
   // The zoom committed at the end of the last pinch. Off-screen pages animate off
   // this (it changes once per gesture) instead of the live cellHeight (which
   // changes every frame), so a pinch only re-runs the visible page's worklets.
@@ -236,6 +237,7 @@ function TimetablePageInner<T>({
   date,
   events,
   cellHeight,
+  hourHeight,
   committedCellHeight,
   scrollY,
   isActive,
@@ -326,7 +328,7 @@ function TimetablePageInner<T>({
   // Capture the row height when the pinch starts and apply `event.scale`
   // (relative to that start) rather than multiplying per-frame deltas — deltas
   // compound float error and the zoom never settles on a clean level.
-  const pinchStartCellHeight = useSharedValue(cellHeight.value);
+  const pinchStartCellHeight = useSharedValue(hourHeight);
   const zoomGesture = useMemo(() => {
     const pinch = Gesture.Pinch()
       .onStart(() => {
@@ -361,7 +363,7 @@ function TimetablePageInner<T>({
           contentContainerStyle={{ paddingTop: HOUR_LABEL_TOP_INSET }}
           contentOffset={{
             x: 0,
-            y: Math.max(0, scrollOffsetMinutes / MINUTES_PER_HOUR - minHour) * cellHeight.value,
+            y: Math.max(0, scrollOffsetMinutes / MINUTES_PER_HOUR - minHour) * hourHeight,
           }}
         >
           <Animated.View style={[styles.content, fullHeightStyle]}>
@@ -463,6 +465,8 @@ export type TimeGridProps<T> = {
   date: Date;
   events: CalendarEvent<T>[];
   cellHeight: SharedValue<number>;
+  /** Initial per-hour row height in px; seeds scroll/zoom without reading the shared value during render. */
+  hourHeight?: number;
   weekStartsOn: WeekStartsOn;
   renderEvent: RenderEvent<T>;
   keyExtractor: EventKeyExtractor<T>;
@@ -490,6 +494,7 @@ function TimeGridInner<T>({
   date,
   events,
   cellHeight,
+  hourHeight = DEFAULT_HOUR_HEIGHT,
   weekStartsOn,
   renderEvent,
   keyExtractor,
@@ -517,14 +522,16 @@ function TimeGridInner<T>({
   // window height (so it renders immediately and in tests) and refine on layout.
   const [pageHeight, setPageHeight] = useState(height);
   const step = mode === 'week' ? WEEK_VIEW_STEP : DAY_VIEW_STEP;
-  // Shared vertical scroll offset so every mounted page stays aligned.
+  // Shared vertical scroll offset so every mounted page stays aligned. Seeded
+  // from the numeric hourHeight rather than reading cellHeight.value (which
+  // would warn about reading a shared value during render).
   const scrollY = useSharedValue(
-    Math.max(0, scrollOffsetMinutes / MINUTES_PER_HOUR - clampedMinHour) * cellHeight.value,
+    Math.max(0, scrollOffsetMinutes / MINUTES_PER_HOUR - clampedMinHour) * hourHeight,
   );
   // Zoom committed at the end of the last pinch; off-screen pages animate off
   // this so they don't re-run their worklets every frame while the visible page
   // zooms.
-  const committedCellHeight = useSharedValue(cellHeight.value);
+  const committedCellHeight = useSharedValue(hourHeight);
 
   // A fixed window of page dates, anchored once and aligned to the page boundary
   // (day or week start). The array never shifts as the date changes.
@@ -591,6 +598,7 @@ function TimeGridInner<T>({
           date={item}
           events={events}
           cellHeight={cellHeight}
+          hourHeight={hourHeight}
           committedCellHeight={committedCellHeight}
           scrollY={scrollY}
           isActive={index === activeIndex}
@@ -616,6 +624,7 @@ function TimeGridInner<T>({
       mode,
       events,
       cellHeight,
+      hourHeight,
       committedCellHeight,
       scrollY,
       activeIndex,

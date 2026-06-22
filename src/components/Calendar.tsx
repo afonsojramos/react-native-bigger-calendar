@@ -115,6 +115,7 @@ export function Calendar<T>({
           date={date}
           events={events}
           cellHeight={cellHeight}
+          hourHeight={hourHeight}
           weekStartsOn={weekStartsOn}
           renderEvent={renderEvent}
           keyExtractor={keyExtractor}
