@@ -32,6 +32,8 @@ export type CalendarProps<T> = {
   onPressMore?: (events: CalendarEvent<T>[], date: Date) => void;
   /** Tap empty space on the week/day grid; receives the date+time pressed. */
   onPressCell?: (date: Date) => void;
+  /** After an empty-cell press, snap the pager back to the active page. Default false. */
+  resetPageOnPressCell?: boolean;
   /** Long-press empty space on the week/day grid; receives the date+time. */
   onLongPressCell?: (date: Date) => void;
   /** Tap a day's column header on the week/day grid (default header only). */
@@ -115,6 +117,8 @@ export type CalendarProps<T> = {
   renderTimeGridHeader?: (days: Date[]) => React.ReactNode;
   /** Replace the weekday-label header above the month grid. Return `null` to hide it. */
   renderHeaderForMonthView?: (weekDays: Date[]) => React.ReactNode;
+  /** Drawn between rows of the `schedule` (agenda) list. */
+  itemSeparatorComponent?: React.ComponentType<unknown> | null;
 };
 
 // Derive a key purely from event data so identity is stable across reorders and
@@ -134,6 +138,7 @@ export function Calendar<T>({
   onLongPressDay,
   onPressMore,
   onPressCell,
+  resetPageOnPressCell,
   onLongPressCell,
   onPressDateHeader,
   maxVisibleEventCount = 2,
@@ -173,6 +178,7 @@ export function Calendar<T>({
   freeSwipe,
   renderTimeGridHeader,
   renderHeaderForMonthView,
+  itemSeparatorComponent,
 }: CalendarProps<T>) {
   const mergedTheme = useMemo(() => mergeTheme(theme), [theme]);
   const internalCellHeight = useSharedValue(hourHeight);
@@ -245,6 +251,7 @@ export function Calendar<T>({
           onPressEvent={handlePressEvent}
           onLongPressEvent={handleLongPressEvent}
           onPressDay={onPressDay}
+          itemSeparatorComponent={itemSeparatorComponent}
         />
       ) : (
         <TimeGrid
@@ -280,6 +287,7 @@ export function Calendar<T>({
           onPressEvent={handlePressEvent}
           onLongPressEvent={handleLongPressEvent}
           onPressCell={onPressCell}
+          resetPageOnPressCell={resetPageOnPressCell}
           onLongPressCell={onLongPressCell}
           onPressDateHeader={onPressDateHeader}
           onChangeDate={onChangeDate}

@@ -1,6 +1,6 @@
 import { LegendList, type LegendListRenderItemProps } from '@legendapp/list/react-native';
 import { format, isSameDay, type Locale, startOfDay } from 'date-fns';
-import { useCallback, useMemo } from 'react';
+import { type ComponentType, useCallback, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useCalendarTheme } from '../theme';
 import type { CalendarEvent, EventKeyExtractor, RenderEvent } from '../types';
@@ -14,6 +14,8 @@ export type AgendaProps<T> = {
   onPressEvent: (event: CalendarEvent<T>) => void;
   onLongPressEvent?: (event: CalendarEvent<T>) => void;
   onPressDay?: (date: Date) => void;
+  /** Drawn between rows of the agenda list. */
+  itemSeparatorComponent?: ComponentType<unknown> | null;
 };
 
 type Row<T> =
@@ -33,6 +35,7 @@ export function Agenda<T>({
   onPressEvent,
   onLongPressEvent,
   onPressDay,
+  itemSeparatorComponent,
 }: AgendaProps<T>) {
   const theme = useCalendarTheme();
   const RenderEventComponent = renderEvent;
@@ -90,6 +93,12 @@ export function Agenda<T>({
       data={rows}
       keyExtractor={keyExtractorRow}
       renderItem={renderItem}
+      // The public prop is data-agnostic; LegendList types the separator by row.
+      ItemSeparatorComponent={
+        (itemSeparatorComponent ?? undefined) as
+          | ComponentType<{ leadingItem: Row<T> }>
+          | undefined
+      }
       recycleItems={false}
     />
   );
