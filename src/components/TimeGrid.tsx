@@ -705,6 +705,11 @@ function TimeGridInner<T>({
   // Horizontal list items need an explicit cross-axis height; seed it with the
   // window height (so it renders immediately and in tests) and refine on layout.
   const [pageHeight, setPageHeight] = useState(height);
+  // The list must remount exactly once — when the real height replaces the
+  // window-height seed — or it keeps the oversized seed and clips. It must NOT
+  // remount on later height changes (e.g. a taller day header vs a shorter week
+  // header on a mode switch): a remount blanks the visible page for a frame.
+  const [measured, setMeasured] = useState(false);
   // Week-anchored modes page by a full week and align pages to the week start:
   // `week`, and `custom` when a `weekEndsOn` defines a partial-week span.
   const weekAnchored = mode === 'week' || (mode === 'custom' && weekEndsOn != null);
@@ -888,12 +893,16 @@ function TimeGridInner<T>({
 
       <View
         style={styles.pager}
-        onLayout={(event) => setPageHeight(event.nativeEvent.layout.height)}
+        onLayout={(event) => {
+          setPageHeight(event.nativeEvent.layout.height);
+          setMeasured(true);
+        }}
       >
         <LegendList
-          // Remount when the measured page height changes so the list adopts
-          // the corrected item height (avoids keeping the oversized window seed).
-          key={pageHeight}
+          // Remount only on the seed→measured transition (see `measured`), not on
+          // every height change, so a day↔week header-height difference resizes the
+          // items in place instead of remounting and blanking the page.
+          key={measured ? 'grid' : 'grid-seed'}
           ref={listRef}
           style={styles.pagerList}
           data={pageDates}
