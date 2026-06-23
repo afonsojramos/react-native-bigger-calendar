@@ -18,7 +18,7 @@
 - ♾️ Virtualized, snap-paging months/weeks/days via [`@legendapp/list`](https://legendapp.com/open-source/list/)
 - 🧩 Bring-your-own event type (`CalendarEvent<T>`) and a `renderEvent` escape hatch
 - 🎨 Fully themeable, with sensible defaults (no styling library required)
-- 🌐 Runs on web too, via [react-native-web](https://necolas.github.io/react-native-web/) (experimental — see [Web](#web-experimental))
+- 🌐 Runs on iOS, Android and web (web via [react-native-web](https://necolas.github.io/react-native-web/); see [Web](#web))
 
 ## Relationship to react-native-big-calendar
 
@@ -241,23 +241,20 @@ paging follows the system scroll direction — so enable React Native's
   moves per swipe; set it to allow a fling to carry across several pages (still
   snapping to a page boundary). Applies to all modes.
 
-### Web (experimental)
+### Web
 
-The calendar runs on [react-native-web](https://necolas.github.io/react-native-web/)
-(its dependencies — `@legendapp/list` v3, Reanimated and Gesture Handler — all
-support web). Add the web peers to your app:
+The calendar runs on [react-native-web](https://necolas.github.io/react-native-web/);
+its dependencies (`@legendapp/list` v3, Reanimated and Gesture Handler) all
+support web. Add the web peers to your app:
 
 ```sh
 npx expo install react-dom react-native-web @expo/metro-runtime
 ```
 
-All views render and mode-switching works (verified via Expo web). Since
-horizontal swipe paging doesn't translate to web, it's disabled there and
-replaced with **←** / **→** arrow-key paging (previous/next page). Remaining
-caveats: pinch-to-zoom (a touch gesture) isn't verified on web, and the list
-library logs a couple of harmless `scrollEnabled`/`pagingEnabled` DOM-prop
-warnings. The runnable [`example/`](./example) builds with `expo start --web` if
-you want to try it.
+All modes render and navigate. Horizontal swipe paging doesn't translate to web,
+so it's disabled there and replaced with **←** / **→** arrow-key paging
+(previous / next page). The runnable [`example/`](./example) builds with `expo
+start --web`.
 
 ## Components
 

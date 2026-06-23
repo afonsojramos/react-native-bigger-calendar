@@ -11,6 +11,7 @@
     "react-native",
     "reanimated",
     "timetable",
+    "web",
     "week-view"
   ],
   "homepage": "https://github.com/afonsojramos/react-native-bigger-calendar#readme",
