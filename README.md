@@ -9,6 +9,7 @@ A generic, themeable **month / week / day** calendar for React Native.
 - ♾️ Virtualized, snap-paging months/weeks/days via [`@legendapp/list`](https://legendapp.com/open-source/list/)
 - 🧩 Bring-your-own event type (`CalendarEvent<T>`) and a `renderEvent` escape hatch
 - 🎨 Fully themeable, with sensible defaults (no styling library required)
+- 🌐 Runs on web too, via [react-native-web](https://necolas.github.io/react-native-web/) (experimental — see [Web](#web-experimental))
 
 ## Relationship to react-native-big-calendar
 
@@ -230,6 +231,22 @@ paging follows the system scroll direction — so enable React Native's
 - `freeSwipe` (default `false`) controls paging: by default one day/week/month
   moves per swipe; set it to allow a fling to carry across several pages (still
   snapping to a page boundary). Applies to all modes.
+
+### Web (experimental)
+
+The calendar runs on [react-native-web](https://necolas.github.io/react-native-web/)
+(its dependencies — `@legendapp/list` v3, Reanimated and Gesture Handler — all
+support web). Add the web peers to your app:
+
+```sh
+npx expo install react-dom react-native-web @expo/metro-runtime
+```
+
+All views render and mode-switching works (verified via Expo web). Caveats: the
+touch gestures — pinch-to-zoom and swipe paging — aren't fully verified on web,
+and the list library logs a couple of harmless `scrollEnabled`/`pagingEnabled`
+DOM-prop warnings. The runnable [`example/`](./example) builds with `expo start
+--web` if you want to try it.
 
 ## Components
 
