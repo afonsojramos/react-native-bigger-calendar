@@ -3,12 +3,12 @@ import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { useCalendarTheme } from "../theme";
 import type { RenderEventArgs } from "../types";
-
-// On the timed grid the time line is only shown once the box is tall enough to
-// hold the title and the (possibly two-line) time without crowding either out;
-// shorter events show the title alone. Schedule rows have no live box height and
-// always show it.
-const MIN_BOX_HEIGHT_FOR_TIME = 56;
+import {
+  isTimeVisibleAtHeight,
+  shouldShowEventTime,
+  titleEllipsizeMode,
+  titleNumberOfLines,
+} from "../utils/eventDisplay";
 
 /**
  * The built-in event renderer: a filled, rounded box showing the event title
@@ -29,18 +29,15 @@ export function DefaultEvent<T>({
 }: RenderEventArgs<T>) {
   const theme = useCalendarTheme();
   const timeFormat = ampm ? "h:mm a" : "HH:mm";
-  const shouldShowTime = mode !== "month" && !isAllDay && showTime;
-  // Hard-clip overflowing text by default; opt into a trailing ellipsis.
-  const ellipsizeMode = ellipsizeTitle ? "tail" : "clip";
+  const isAllDayEvent = isAllDay ?? false;
+  const shouldShowTime = shouldShowEventTime(mode, isAllDayEvent, showTime);
+  const ellipsizeMode = titleEllipsizeMode(ellipsizeTitle);
 
-  // In narrow multi-column modes (week/3days/…) the time needs two lines, so
-  // hide it on boxes too short to fit it without crowding out the title (driven
-  // on the UI thread, so it reveals as you pinch-zoom in). The single wide `day`
-  // column and schedule (no live box height) always show it.
+  // Hide the time on boxes too short to fit it (driven on the UI thread, so it
+  // reveals as you pinch-zoom in). Always returns the same key so Reanimated has
+  // a prior value to diff against.
   const timeStyle = useAnimatedStyle(() => {
-    // Always return the same key so Reanimated has a prior value to diff against.
-    const visible = !boxHeight || mode === "day" || boxHeight.value >= MIN_BOX_HEIGHT_FOR_TIME;
-    return { display: visible ? "flex" : "none" };
+    return { display: isTimeVisibleAtHeight(boxHeight?.value, mode) ? "flex" : "none" };
   }, [boxHeight, mode]);
 
   return (
@@ -64,7 +61,7 @@ export function DefaultEvent<T>({
           // grid events (day/week/3days/…) have vertical room, so let the title
           // wrap to fill its box. It shrinks (flexShrink) before the time, so a
           // short box clips the title rather than slicing the time line in half.
-          numberOfLines={mode === "month" || isAllDay ? 1 : undefined}
+          numberOfLines={titleNumberOfLines(mode, isAllDayEvent)}
           ellipsizeMode={ellipsizeMode}
           allowFontScaling={false}
         >
