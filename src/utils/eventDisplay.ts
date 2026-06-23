@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import type { CalendarMode } from "../types";
 
 /**
@@ -9,6 +10,24 @@ export const MIN_BOX_HEIGHT_FOR_TIME = 56;
 /** Hard-clip an overflowing title by default; opt into a trailing ellipsis. */
 export function titleEllipsizeMode(ellipsizeTitle: boolean): "clip" | "tail" {
   return ellipsizeTitle ? "tail" : "clip";
+}
+
+/**
+ * Screen-reader label for an event: its title followed by "all day" or its time
+ * range (which the grid otherwise only conveys visually). Empty title is dropped.
+ */
+export function eventAccessibilityLabel(args: {
+  title?: string;
+  isAllDay: boolean;
+  start: Date;
+  end: Date;
+  ampm: boolean;
+}): string {
+  const timeFormat = args.ampm ? "h:mm a" : "HH:mm";
+  const time = args.isAllDay
+    ? "all day"
+    : `${format(args.start, timeFormat)} to ${format(args.end, timeFormat)}`;
+  return [args.title, time].filter(Boolean).join(", ");
 }
 
 /**

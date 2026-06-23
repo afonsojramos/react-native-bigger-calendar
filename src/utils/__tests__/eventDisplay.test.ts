@@ -1,4 +1,5 @@
 import {
+  eventAccessibilityLabel,
   isTimeVisibleAtHeight,
   MIN_BOX_HEIGHT_FOR_TIME,
   monthEventCapacity,
@@ -15,6 +16,35 @@ describe("titleEllipsizeMode", () => {
 
   it("ellipsizes when opted in", () => {
     expect(titleEllipsizeMode(true)).toBe("tail");
+  });
+});
+
+describe("eventAccessibilityLabel", () => {
+  const start = new Date(2026, 0, 1, 9, 0, 0);
+  const end = new Date(2026, 0, 1, 10, 30, 0);
+
+  it("includes the title and 24h time range", () => {
+    expect(
+      eventAccessibilityLabel({ title: "Standup", isAllDay: false, start, end, ampm: false }),
+    ).toBe("Standup, 09:00 to 10:30");
+  });
+
+  it("uses 12h time when ampm is set", () => {
+    expect(
+      eventAccessibilityLabel({ title: "Standup", isAllDay: false, start, end, ampm: true }),
+    ).toBe("Standup, 9:00 AM to 10:30 AM");
+  });
+
+  it("says all day for all-day events", () => {
+    expect(
+      eventAccessibilityLabel({ title: "Holiday", isAllDay: true, start, end, ampm: false }),
+    ).toBe("Holiday, all day");
+  });
+
+  it("omits an empty title", () => {
+    expect(eventAccessibilityLabel({ isAllDay: false, start, end, ampm: false })).toBe(
+      "09:00 to 10:30",
+    );
   });
 });
 

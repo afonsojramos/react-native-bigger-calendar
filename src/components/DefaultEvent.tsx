@@ -4,6 +4,7 @@ import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { useCalendarTheme } from "../theme";
 import type { RenderEventArgs } from "../types";
 import {
+  eventAccessibilityLabel,
   isTimeVisibleAtHeight,
   shouldShowEventTime,
   titleEllipsizeMode,
@@ -33,6 +34,16 @@ export function DefaultEvent<T>({
   const shouldShowTime = shouldShowEventTime(mode, isAllDayEvent, showTime);
   const ellipsizeMode = titleEllipsizeMode(ellipsizeTitle);
 
+  // Announce the full event to screen readers: title plus "all day" or the time
+  // range (which is otherwise only shown visually).
+  const accessibilityLabel = eventAccessibilityLabel({
+    title: event.title,
+    isAllDay: isAllDayEvent,
+    start: event.start,
+    end: event.end,
+    ampm,
+  });
+
   // Hide the time on boxes too short to fit it (driven on the UI thread, so it
   // reveals as you pinch-zoom in). Always returns the same key so Reanimated has
   // a prior value to diff against.
@@ -52,7 +63,8 @@ export function DefaultEvent<T>({
       onLongPress={onLongPress}
       activeOpacity={0.7}
       accessibilityRole="button"
-      accessibilityLabel={event.title}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled: event.disabled ?? false }}
     >
       {event.title ? (
         <Text
