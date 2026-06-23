@@ -6,6 +6,7 @@ export {
   TimeGrid,
   type TimeGridProps,
   type EventDragHandler,
+  type EventDragStartHandler,
   type HourRenderer,
   DEFAULT_HOUR_HEIGHT,
 } from "./components/TimeGrid";

@@ -94,6 +94,13 @@ const DEFAULT_DRAG_STEP_MINUTES = 15;
 
 /** Called when an event is dragged (moved or resized) to new start/end times. */
 export type EventDragHandler<T> = (event: CalendarEvent<T>, start: Date, end: Date) => void;
+/**
+ * Called when a move or resize gesture begins, before any change is committed:
+ * on grab for a move (after the long-press), and when the resize drag starts.
+ * Handy for haptic feedback (e.g. `expo-haptics`). Requires drag to be enabled
+ * via `onDragEvent`.
+ */
+export type EventDragStartHandler<T> = (event: CalendarEvent<T>) => void;
 // Hour labels are nudged up so the number sits centred on its grid line. Pad the
 // scroll content by the same amount so the top-most label is never clipped.
 const HOUR_LABEL_TOP_INSET = 12;
@@ -134,6 +141,7 @@ type AnimatedEventBoxProps<T> = {
   onPress: (event: CalendarEvent<T>) => void;
   onLongPress?: (event: CalendarEvent<T>) => void;
   onDragEvent?: EventDragHandler<T>;
+  onDragStart?: EventDragStartHandler<T>;
 };
 
 function AnimatedEventBox<T>({
@@ -148,6 +156,7 @@ function AnimatedEventBox<T>({
   onPress,
   onLongPress,
   onDragEvent,
+  onDragStart,
 }: AnimatedEventBoxProps<T>) {
   const RenderEventComponent = renderEvent;
   const theme = useCalendarTheme();
@@ -182,8 +191,8 @@ function AnimatedEventBox<T>({
 
   // Keep the latest event/handler in a ref so the gestures stay memoized but
   // never call into a stale closure.
-  const latest = useRef({ event: positioned.event, onDragEvent });
-  latest.current = { event: positioned.event, onDragEvent };
+  const latest = useRef({ event: positioned.event, onDragEvent, onDragStart });
+  latest.current = { event: positioned.event, onDragEvent, onDragStart };
 
   const commitDrag = useCallback(
     (deltaStartMin: number, deltaEndMin: number) => {
@@ -198,11 +207,20 @@ function AnimatedEventBox<T>({
     [snapMinutes],
   );
 
+  // Fired on the JS thread when the gesture grabs the event, so consumers can
+  // trigger haptics or other side effects the instant drag mode begins.
+  const notifyDragStart = useCallback(() => {
+    latest.current.onDragStart?.(latest.current.event);
+  }, []);
+
   const moveGesture = useMemo(
     () =>
       Gesture.Pan()
         .enabled(draggable)
         .activateAfterLongPress(DRAG_ACTIVATE_MS)
+        .onStart(() => {
+          runOnJS(notifyDragStart)();
+        })
         .onUpdate((event) => {
           moveOffset.value = event.translationY;
         })
@@ -211,13 +229,16 @@ function AnimatedEventBox<T>({
           moveOffset.value = 0;
           if (delta !== 0) runOnJS(commitDrag)(delta, delta);
         }),
-    [draggable, snapMinutes, cellHeight, moveOffset, commitDrag],
+    [draggable, snapMinutes, cellHeight, moveOffset, commitDrag, notifyDragStart],
   );
 
   const resizeGesture = useMemo(
     () =>
       Gesture.Pan()
         .enabled(resizable)
+        .onStart(() => {
+          runOnJS(notifyDragStart)();
+        })
         .onUpdate((event) => {
           resizeDelta.value = event.translationY;
         })
@@ -226,7 +247,7 @@ function AnimatedEventBox<T>({
           resizeDelta.value = 0;
           if (delta !== 0) runOnJS(commitDrag)(0, delta);
         }),
-    [resizable, snapMinutes, cellHeight, resizeDelta, commitDrag],
+    [resizable, snapMinutes, cellHeight, resizeDelta, commitDrag, notifyDragStart],
   );
 
   const handlePress = () => onPress(positioned.event);
@@ -407,6 +428,7 @@ type TimetablePageProps<T> = {
   onPressEvent: (event: CalendarEvent<T>) => void;
   onLongPressEvent?: (event: CalendarEvent<T>) => void;
   onDragEvent?: EventDragHandler<T>;
+  onDragStart?: EventDragStartHandler<T>;
   onPressCell?: (date: Date) => void;
   onLongPressCell?: (date: Date) => void;
 };
@@ -446,6 +468,7 @@ function TimetablePageInner<T>({
   onPressEvent,
   onLongPressEvent,
   onDragEvent,
+  onDragStart,
   onPressCell,
   onLongPressCell,
 }: TimetablePageProps<T>) {
@@ -687,6 +710,7 @@ function TimetablePageInner<T>({
                       onPress={onPressEvent}
                       onLongPress={onLongPressEvent}
                       onDragEvent={onDragEvent}
+                      onDragStart={onDragStart}
                     />
                   );
                 }),
@@ -777,6 +801,8 @@ export type TimeGridProps<T> = {
    * event's new start/end (snapped to `dragStepMinutes`); update your own state.
    */
   onDragEvent?: EventDragHandler<T>;
+  /** Fired the moment an event is grabbed for a move or resize (e.g. for haptics). */
+  onDragStart?: EventDragStartHandler<T>;
   onPressCell?: (date: Date) => void;
   onLongPressCell?: (date: Date) => void;
   /** Tap a day's column header (default header only). */
@@ -824,6 +850,7 @@ function TimeGridInner<T>({
   onPressEvent,
   onLongPressEvent,
   onDragEvent,
+  onDragStart,
   onPressCell,
   onLongPressCell,
   onPressDateHeader,
@@ -998,6 +1025,7 @@ function TimeGridInner<T>({
           onPressEvent={onPressEvent}
           onLongPressEvent={onLongPressEvent}
           onDragEvent={onDragEvent}
+          onDragStart={onDragStart}
           onPressCell={handlePressCell}
           onLongPressCell={onLongPressCell}
         />
@@ -1036,6 +1064,7 @@ function TimeGridInner<T>({
       onPressEvent,
       onLongPressEvent,
       onDragEvent,
+      onDragStart,
       handlePressCell,
       onLongPressCell,
     ],

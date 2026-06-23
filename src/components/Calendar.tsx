@@ -26,6 +26,7 @@ import { MonthPager } from "./MonthPager";
 import {
   DEFAULT_HOUR_HEIGHT,
   type EventDragHandler,
+  type EventDragStartHandler,
   type HourRenderer,
   TimeGrid,
 } from "./TimeGrid";
@@ -47,6 +48,14 @@ export type CalendarProps<T> = {
    * bottom grip to resize.
    */
   onDragEvent?: EventDragHandler<T>;
+  /**
+   * Fired when a move or resize gesture begins on the week/day grid, before any
+   * change is committed: on grab for a move (after the long-press), and when a
+   * resize drag starts. Use it to trigger haptic feedback, e.g.
+   * `Haptics.impactAsync()` from `expo-haptics`. Native-only and inert unless
+   * `onDragEvent` is also set.
+   */
+  onDragStart?: EventDragStartHandler<T>;
   /** Minutes a drag-to-move/resize snaps to. Default 15. */
   dragStepMinutes?: number;
   /** Tap a day cell (month mode) — e.g. drill into the day view. */
@@ -196,6 +205,7 @@ export function Calendar<T>({
   onPressEvent,
   onLongPressEvent,
   onDragEvent,
+  onDragStart,
   dragStepMinutes,
   onPressDay,
   onLongPressDay,
@@ -377,6 +387,7 @@ export function Calendar<T>({
           onPressEvent={handlePressEvent}
           onLongPressEvent={handleLongPressEvent}
           onDragEvent={onDragEvent}
+          onDragStart={onDragStart}
           dragStepMinutes={dragStepMinutes}
           onPressCell={onPressCell}
           resetPageOnPressCell={resetPageOnPressCell}
