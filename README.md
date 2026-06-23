@@ -1,8 +1,17 @@
-# react-native-bigger-calendar
+<h1 align="center">react-native-bigger-calendar</h1>
 
-A generic, themeable **month / week / day** calendar for React Native.
+<p align="center">A generic, themeable <strong>month / week / day</strong> calendar for React Native.</p>
 
-![Month, week, 3-day, day and schedule views of react-native-bigger-calendar](./.github/assets/preview.png)
+<p align="center">
+  <a href="https://npmx.dev/package/react-native-bigger-calendar"><img alt="npm version" src="https://img.shields.io/npm/v/react-native-bigger-calendar?style=flat-square&amp;color=1F6FEB" /></a>
+  <a href="https://npmx.dev/package/react-native-bigger-calendar"><img alt="downloads per month" src="https://img.shields.io/npm/dm/react-native-bigger-calendar?style=flat-square" /></a>
+  <a href="https://github.com/afonsojramos/react-native-bigger-calendar/actions/workflows/ci.yml"><img alt="CI status" src="https://img.shields.io/github/actions/workflow/status/afonsojramos/react-native-bigger-calendar/ci.yml?branch=main&amp;style=flat-square&amp;label=CI" /></a>
+  <a href="#license"><img alt="MIT license" src="https://img.shields.io/npm/l/react-native-bigger-calendar?style=flat-square" /></a>
+</p>
+
+<p align="center">
+  <img alt="Month, week, 3-day, day and schedule views of react-native-bigger-calendar" src="./.github/assets/preview.png" />
+</p>
 
 - 📆 Month grid plus day / 3-day / week / custom-N time-grids
 - 🤏 Pinch-to-zoom on the week/day grid (UI thread, no re-renders)
