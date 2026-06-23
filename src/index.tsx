@@ -31,6 +31,7 @@ export type {
   WeekStartsOn,
 } from "./types";
 export { expandRecurringEvents } from "./utils/recurrence";
+export { eventsInTimeZone, toZonedTime } from "./utils/timezone";
 export {
   getWeekDays,
   getIsToday,

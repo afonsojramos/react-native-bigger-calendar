@@ -182,6 +182,22 @@ Rules support `freq` (`daily`/`weekly`/`monthly`/`yearly`), `interval`, `count`,
 `until`, and `weekdays` (for `weekly`). Each occurrence keeps the original
 duration and fields; non-recurring events pass through unchanged.
 
+### Time zones
+
+Events lay out from their local wall-clock time. To display them in a specific
+IANA zone regardless of the device, run them through `eventsInTimeZone` (or a
+single date through `toZonedTime`). It's DST-correct via `Intl`:
+
+```tsx
+import { Calendar, eventsInTimeZone } from "react-native-bigger-calendar";
+
+// Render every event at its New York wall-clock time.
+<Calendar /* ... */ events={eventsInTimeZone(events, "America/New_York")} />;
+```
+
+The returned dates are for display only — they carry the zone's wall clock, not
+the original instant, so keep your source events around for editing/saving.
+
 ### Theming
 
 ```tsx
