@@ -4,9 +4,17 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Calendar, type CalendarEvent, type CalendarMode } from "react-native-bigger-calendar";
 
-type EventMeta = { id: string; kind: "lecture" | "lab" | "exam" };
+type EventMeta = {
+  id: string;
+  kind: "work" | "music" | "health" | "exam" | "social" | "travel";
+};
 
 const MODES: CalendarMode[] = ["month", "week", "3days", "day", "schedule"];
+
+// Pin the calendar to a single view, overriding the tab bar — handy for
+// screenshots and docs. Set it to a mode (e.g. "week") to force that view; leave
+// it null to drive the calendar interactively through the tabs.
+const DEMO_MODE: CalendarMode | null = null;
 
 // Events anchored to "today" so the demo is always populated.
 function buildEvents(): CalendarEvent<EventMeta>[] {
@@ -19,17 +27,34 @@ function buildEvents(): CalendarEvent<EventMeta>[] {
     return d;
   };
   return [
-    { id: "1", kind: "lecture", title: "Contract Law", start: at(0, 9), end: at(0, 10, 30) },
-    { id: "2", kind: "lab", title: "Research Skills", start: at(0, 11), end: at(0, 12) },
-    { id: "3", kind: "lecture", title: "Tort Law", start: at(1, 13), end: at(1, 15) },
-    { id: "4", kind: "exam", title: "Mid-term Exam", start: at(2, 9), end: at(2, 12) },
+    { id: "1", kind: "work", title: "👥 Team standup", start: at(0, 9), end: at(0, 9, 30) },
+    { id: "2", kind: "health", title: "🦷 Dentist", start: at(0, 11), end: at(0, 11, 45) },
+    {
+      id: "3",
+      kind: "social",
+      title: "🥪 Lunch with Sam",
+      start: at(0, 12, 30),
+      end: at(0, 13, 30),
+    },
+    // Long title + an evening slot below the morning scroll offset.
+    {
+      id: "4",
+      kind: "music",
+      title: "🎸 King Gizzard & the Lizard Wizard",
+      start: at(0, 19),
+      end: at(0, 23),
+    },
+    { id: "5", kind: "exam", title: "🚗 Driving theory exam", start: at(1, 9), end: at(1, 10, 30) },
+    { id: "6", kind: "health", title: "🩺 GP appointment", start: at(1, 15), end: at(1, 15, 30) },
+    { id: "7", kind: "health", title: "💪 Physio", start: at(2, 10), end: at(2, 10, 45) },
+    { id: "8", kind: "work", title: "📊 Project review", start: at(2, 14), end: at(2, 15) },
     // A multi-day event: renders on every day it spans, clipped per day.
-    { id: "5", kind: "lecture", title: "Residential", start: at(3, 18), end: at(5, 12) },
+    { id: "9", kind: "travel", title: "✈️ Lisbon trip", start: at(3, 17), end: at(5, 21) },
     // An all-day event: renders in the lane above the grid, not in the columns.
     {
-      id: "6",
-      kind: "lecture",
-      title: "Reading Week",
+      id: "10",
+      kind: "social",
+      title: "🎂 Mum's birthday",
       start: at(0, 0),
       end: at(1, 0),
       allDay: true,
@@ -41,6 +66,8 @@ export default function App() {
   const [mode, setMode] = useState<CalendarMode>("week");
   const [date, setDate] = useState(() => new Date());
   const events = useMemo(buildEvents, []);
+  // DEMO_MODE pins the view when set; otherwise the tab bar drives it.
+  const activeMode = DEMO_MODE ?? mode;
 
   return (
     <GestureHandlerRootView style={styles.root}>
@@ -50,15 +77,15 @@ export default function App() {
             {MODES.map((m) => (
               <Pressable
                 key={m}
-                style={[styles.tab, mode === m && styles.tabActive]}
+                style={[styles.tab, activeMode === m && styles.tabActive]}
                 onPress={() => setMode(m)}
               >
-                <Text style={[styles.tabText, mode === m && styles.tabTextActive]}>{m}</Text>
+                <Text style={[styles.tabText, activeMode === m && styles.tabTextActive]}>{m}</Text>
               </Pressable>
             ))}
           </View>
           <Calendar
-            mode={mode}
+            mode={activeMode}
             date={date}
             events={events}
             weekStartsOn={1}
