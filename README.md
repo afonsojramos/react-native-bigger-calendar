@@ -168,6 +168,21 @@ work-week). Day/3-day/custom views page by their column count; `week` pages by
 the calendar week. `schedule` is a vertical, day-grouped agenda list of the
 events you pass (no time grid).
 
+### Month view
+
+Each day cell shows as many event chips as its height allows and collapses the
+rest into a `+N more` label (tap it via `onPressMore`). The fit is measured at
+runtime, so taller grids (fewer week rows, larger screens) show more.
+
+```tsx
+<Calendar mode="month" /* ... */ />          // auto-fit (default)
+<Calendar mode="month" maxVisibleEventCount={3} /* ... */ /> // fixed cap
+```
+
+Pass `maxVisibleEventCount` for a fixed cap instead — recommended when you pass a
+custom `renderEvent`, since auto-fit assumes the built-in chip height. Customize
+the overflow text with `moreLabel` (e.g. `"+{moreCount}"`).
+
 ### Localization
 
 Pass a date-fns [`Locale`](https://date-fns.org/docs/I18n) to localize weekday and
