@@ -33,6 +33,16 @@ export type {
   TimeGridMode,
   WeekStartsOn,
 } from "./types";
+export {
+  type DateRange,
+  type DateSelectionConstraints,
+  type UseDateRangeOptions,
+  isDateSelectable,
+  isRangeEndpoint,
+  isWithinDateRange,
+  nextDateRange,
+  useDateRange,
+} from "./utils/dateRange";
 export { expandRecurringEvents } from "./utils/recurrence";
 export { eventsInTimeZone, toZonedTime } from "./utils/timezone";
 export {
