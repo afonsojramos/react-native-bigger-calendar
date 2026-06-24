@@ -44,8 +44,9 @@ export type CalendarProps<T> = {
   /**
    * Enable drag-to-move and drag-to-resize on the week/day grid. Called with the
    * dragged event and its new start/end (snapped to `dragStepMinutes`); update
-   * your own event state in response. Long-press an event to move it; drag its
-   * bottom grip to resize.
+   * your own event state in response. Long-press an event to move it (drag
+   * horizontally to change the day too); drag its bottom grip to resize. Return
+   * `false` to reject the drop (e.g. an overlap) and snap the event back.
    */
   onDragEvent?: EventDragHandler<T>;
   /**

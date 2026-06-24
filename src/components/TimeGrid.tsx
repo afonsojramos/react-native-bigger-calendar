@@ -105,8 +105,16 @@ const RESIZE_HANDLE_HEIGHT = 14;
 // Default minutes a drag snaps to when `dragStepMinutes` isn't set.
 const DEFAULT_DRAG_STEP_MINUTES = 15;
 
-/** Called when an event is dragged (moved or resized) to new start/end times. */
-export type EventDragHandler<T> = (event: CalendarEvent<T>, start: Date, end: Date) => void;
+/**
+ * Called when an event is dragged (moved or resized) to new start/end times.
+ * Return `false` to reject the drop — the event snaps back to where it started
+ * (e.g. to forbid overlaps or out-of-bounds slots). Any other return accepts it.
+ */
+export type EventDragHandler<T> = (
+  event: CalendarEvent<T>,
+  start: Date,
+  end: Date,
+) => void | boolean;
 /**
  * Called when a move or resize gesture begins, before any change is committed:
  * on grab for a move (after the long-press), and when the resize drag starts.
@@ -231,11 +239,21 @@ function AnimatedEventBox<T>({
   const latest = useRef({ event: positioned.event, onDragEvent, onDragStart });
   latest.current = { event: positioned.event, onDragEvent, onDragStart };
 
+  // Snap the box back to where it started (drop rejected or degenerate).
+  const snapBack = useCallback(() => {
+    // eslint-disable-next-line react-hooks/immutability -- Reanimated shared value: assigning .value is the intended mutation API
+    moveOffset.value = 0;
+    // eslint-disable-next-line react-hooks/immutability -- Reanimated shared value: assigning .value is the intended mutation API
+    moveOffsetX.value = 0;
+    // eslint-disable-next-line react-hooks/immutability -- Reanimated shared value: assigning .value is the intended mutation API
+    resizeDelta.value = 0;
+  }, [moveOffset, moveOffsetX, resizeDelta]);
+
   const commitDrag = useCallback(
     (deltaStartMin: number, deltaEndMin: number) => {
       const { event, onDragEvent: handler } = latest.current;
       if (!handler) return;
-      // Returns null (and we bail) when a resize would collapse below one step.
+      // Returns null when a resize would collapse below one step — snap back.
       const next = resolveDraggedBounds(
         event.start,
         event.end,
@@ -243,10 +261,15 @@ function AnimatedEventBox<T>({
         deltaEndMin,
         snapMinutes,
       );
-      if (!next) return;
-      handler(event, next.start, next.end);
+      if (!next) {
+        snapBack();
+        return;
+      }
+      // A handler may return false to reject the drop (e.g. an overlap or an
+      // out-of-bounds slot); snap the box back to its original place.
+      if (handler(event, next.start, next.end) === false) snapBack();
     },
-    [snapMinutes],
+    [snapMinutes, snapBack],
   );
 
   // Fired on the JS thread when the gesture grabs the event, so consumers can
