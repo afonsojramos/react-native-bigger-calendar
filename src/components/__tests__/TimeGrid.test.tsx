@@ -1,0 +1,66 @@
+import { render } from "@testing-library/react-native";
+import type { CalendarEvent } from "../../types";
+
+// Capture the props handed to the virtualized list, and render only the active
+// page through `renderItem`. The real LegendList can't lay out under Jest (no
+// measured dimensions), so it never mounts page content; this stand-in does,
+// while still exposing the props we assert on.
+const lastListProps = () => (globalThis as { __listProps?: Record<string, unknown> }).__listProps;
+jest.mock("@legendapp/list/react-native", () => ({
+  __esModule: true,
+  LegendList: (props: any) => {
+    (globalThis as any).__listProps = props;
+    const index = props.initialScrollIndex ?? 0;
+    const item = props.data?.[index];
+    return item === undefined ? null : props.renderItem({ item, index });
+  },
+}));
+
+import { Calendar } from "../Calendar";
+
+type WithId = { id: string };
+const event: CalendarEvent<WithId> = {
+  id: "1",
+  start: new Date(2026, 0, 6, 9, 0, 0),
+  end: new Date(2026, 0, 6, 10, 0, 0),
+  title: "Standup",
+};
+
+const noop = () => {};
+
+describe("TimeGrid event updates", () => {
+  // Pages are virtualized by date, so a list item only repaints when its key,
+  // data, or extraData changes. A moved event changes none of those — so without
+  // feeding `events` to the list as extraData, a committed drag/menu move leaves
+  // the stale position on screen (the box only appears to move until the next
+  // grab snaps it back). Guard the wiring that makes external updates repaint.
+  it("feeds the current events to the list as extraData", () => {
+    const date = new Date(2026, 0, 6, 12, 0, 0);
+    const events = [event];
+    const { rerender, getByLabelText, queryByLabelText } = render(
+      <Calendar mode="day" date={date} events={events} onChangeDate={noop} onPressEvent={noop} />,
+    );
+    expect(lastListProps()?.extraData).toBe(events);
+    expect(getByLabelText(/Standup, 09:00 to 10:00/)).toBeTruthy();
+
+    const moved: CalendarEvent<WithId> = {
+      ...event,
+      start: new Date(2026, 0, 6, 11, 0, 0),
+      end: new Date(2026, 0, 6, 12, 0, 0),
+    };
+    const movedEvents = [moved];
+    rerender(
+      <Calendar
+        mode="day"
+        date={date}
+        events={movedEvents}
+        onChangeDate={noop}
+        onPressEvent={noop}
+      />,
+    );
+
+    expect(lastListProps()?.extraData).toBe(movedEvents);
+    expect(getByLabelText(/Standup, 11:00 to 12:00/)).toBeTruthy();
+    expect(queryByLabelText(/Standup, 09:00 to 10:00/)).toBeNull();
+  });
+});
