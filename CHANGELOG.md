@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.0](https://github.com/afonsojramos/react-native-bigger-calendar/compare/v0.5.0...v0.6.0) (2026-06-24)
+
+
+### Features
+
+* demo businessHours (9-5 weekdays, closed weekends) in the example ([377abe3](https://github.com/afonsojramos/react-native-bigger-calendar/commit/377abe30b06cd6dc4885ff7fd1da07ba96d2e54d))
+* demo drop rejection by locking exam events in the example ([4978d2d](https://github.com/afonsojramos/react-native-bigger-calendar/commit/4978d2d236ad12b8c2f956e9367a137ebb61b300))
+* let onDragEvent return false to reject a drop and snap back ([b0f65e8](https://github.com/afonsojramos/react-native-bigger-calendar/commit/b0f65e800e4d3765e66d2a76f160a7cf3cbad580))
+* shade non-working hours via a businessHours prop ([5f129ec](https://github.com/afonsojramos/react-native-bigger-calendar/commit/5f129ec2e5c96fb6712c0a05ee6bdded0f8af92b))
+
 ## [0.5.0](https://github.com/afonsojramos/react-native-bigger-calendar/compare/v0.4.0...v0.5.0) (2026-06-24)
 
 
