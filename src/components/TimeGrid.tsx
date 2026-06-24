@@ -84,9 +84,13 @@ const MIN_EVENT_HEIGHT = 32;
 // Inset each event box within its slot so adjacent boxes (and column edges) get a
 // little breathing room instead of butting edge-to-edge.
 const EVENT_GAP = 2;
-// Hold this long before a drag-to-move begins, so a normal scroll/tap isn't
-// hijacked.
+// Hold this long before a drag-to-move begins on native, so a normal scroll/tap
+// isn't hijacked.
 const DRAG_ACTIVATE_MS = 220;
+// Web has no long-press, so a drag-to-move activates only after the pointer
+// moves this far vertically — below it a press stays a click (select /
+// right-click menu).
+const DRAG_ACTIVATE_PX = 8;
 // Height of the resize grip at the bottom of a draggable event box.
 const RESIZE_HANDLE_HEIGHT = 14;
 // Default minutes a drag snaps to when `dragStepMinutes` isn't set.
@@ -160,10 +164,10 @@ function AnimatedEventBox<T>({
 }: AnimatedEventBoxProps<T>) {
   const RenderEventComponent = renderEvent;
   const theme = useCalendarTheme();
-  // Drag-to-move/resize is a touch interaction; on web the gesture overlay would
-  // sit over the event and intercept taps, so it stays native-only (web has
-  // Ctrl/Cmd + scroll zoom and arrow-key paging instead).
-  const draggable = onDragEvent != null && !positioned.event.disabled && !isWeb;
+  // Drag-to-move/resize. Native picks the event up on long-press (so a tap or
+  // scroll isn't hijacked); web activates after a small drag threshold, so a
+  // plain click still selects and a right-click still opens a context menu.
+  const draggable = onDragEvent != null && !positioned.event.disabled;
   // Only the segment that owns the real end may be resized.
   const resizable = draggable && !positioned.continuesAfter;
 
@@ -229,30 +233,32 @@ function AnimatedEventBox<T>({
     latest.current.onDragStart?.(latest.current.event);
   }, []);
 
-  const moveGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .enabled(draggable)
-        .activateAfterLongPress(DRAG_ACTIVATE_MS)
-        .onStart(() => {
-          runOnJS(notifyDragStart)();
-        })
-        .onUpdate((event) => {
-          moveOffset.value = event.translationY;
-        })
-        .onEnd((event) => {
-          const delta = snapDeltaMinutes(event.translationY, cellHeight.value, snapMinutes);
-          if (delta === 0) {
-            moveOffset.value = 0;
-            return;
-          }
-          // Hold the snapped position so the box doesn't flash back to the
-          // original before the committed re-render lands.
-          moveOffset.value = (delta / MINUTES_PER_HOUR) * cellHeight.value;
-          runOnJS(commitDrag)(delta, delta);
-        }),
-    [draggable, snapMinutes, cellHeight, moveOffset, commitDrag, notifyDragStart],
-  );
+  const moveGesture = useMemo(() => {
+    const pan = Gesture.Pan()
+      .enabled(draggable)
+      .onStart(() => {
+        runOnJS(notifyDragStart)();
+      })
+      .onUpdate((event) => {
+        moveOffset.value = event.translationY;
+      })
+      .onEnd((event) => {
+        const delta = snapDeltaMinutes(event.translationY, cellHeight.value, snapMinutes);
+        if (delta === 0) {
+          moveOffset.value = 0;
+          return;
+        }
+        // Hold the snapped position so the box doesn't flash back to the
+        // original before the committed re-render lands.
+        moveOffset.value = (delta / MINUTES_PER_HOUR) * cellHeight.value;
+        runOnJS(commitDrag)(delta, delta);
+      });
+    // Native: long-press to pick up. Web: activate past a small vertical
+    // threshold so clicks and right-clicks pass through.
+    return isWeb
+      ? pan.activeOffsetY([-DRAG_ACTIVATE_PX, DRAG_ACTIVATE_PX])
+      : pan.activateAfterLongPress(DRAG_ACTIVATE_MS);
+  }, [draggable, snapMinutes, cellHeight, moveOffset, commitDrag, notifyDragStart]);
 
   const resizeGesture = useMemo(
     () =>
