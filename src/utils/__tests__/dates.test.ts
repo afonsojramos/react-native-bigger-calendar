@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import {
+  buildMonthWeeks,
   getIsToday,
   getViewDays,
   getWeekDays,
@@ -9,6 +10,32 @@ import {
   viewDayCount,
   weekDaysCount,
 } from "../dates";
+
+describe("buildMonthWeeks", () => {
+  const june = new Date(2026, 5, 15); // June 2026; 1 June is a Monday
+
+  it("pads to whole weeks starting on Sunday", () => {
+    const weeks = buildMonthWeeks(june, 0);
+    expect(weeks[0]).toHaveLength(7);
+    expect(format(weeks[0][0], "d LLL")).toBe("31 May"); // leading Sunday
+    expect(format(weeks.at(-1)?.at(-1) as Date, "EEE")).toBe("Sat");
+  });
+
+  it("starts on the configured first weekday", () => {
+    const weeks = buildMonthWeeks(june, 1); // Monday
+    expect(format(weeks[0][0], "d LLL")).toBe("1 Jun");
+  });
+
+  it("always returns six rows when showSixWeeks is set", () => {
+    expect(buildMonthWeeks(june, 0, { showSixWeeks: true })).toHaveLength(6);
+  });
+
+  it("reverses each week in RTL", () => {
+    const ltr = buildMonthWeeks(june, 0);
+    const rtl = buildMonthWeeks(june, 0, { isRTL: true });
+    expect(format(rtl[0][0], "d LLL")).toBe(format(ltr[0][6], "d LLL"));
+  });
+});
 
 describe("getWeekDays", () => {
   const wed = new Date(2026, 5, 17, 12); // Wednesday 17 Jun 2026

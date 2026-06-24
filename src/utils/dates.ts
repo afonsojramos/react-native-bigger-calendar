@@ -1,10 +1,14 @@
 import {
   addDays,
+  eachDayOfInterval,
+  endOfMonth,
+  endOfWeek,
   getHours,
   getMinutes,
   isSameDay,
   isToday,
   startOfDay,
+  startOfMonth,
   startOfWeek,
 } from "date-fns";
 import type { CalendarMode, WeekStartsOn } from "../types";
@@ -78,6 +82,27 @@ export const getViewDays = (
     );
   }
   return isRTL ? days.reverse() : days;
+};
+
+/**
+ * The calendar weeks covering `month`, padded to whole weeks starting on
+ * `weekStartsOn`. `showSixWeeks` always returns six rows (42 days) for a
+ * fixed-height grid; `isRTL` reverses each week's day order.
+ */
+export const buildMonthWeeks = (
+  month: Date,
+  weekStartsOn: WeekStartsOn,
+  { showSixWeeks = false, isRTL = false }: { showSixWeeks?: boolean; isRTL?: boolean } = {},
+): Date[][] => {
+  const start = startOfWeek(startOfMonth(month), { weekStartsOn });
+  const end = showSixWeeks ? addDays(start, 41) : endOfWeek(endOfMonth(month), { weekStartsOn });
+  const days = eachDayOfInterval({ start, end });
+  const weeks: Date[][] = [];
+  for (let index = 0; index < days.length; index += 7) {
+    const week = days.slice(index, index + 7);
+    weeks.push(isRTL ? week.reverse() : week);
+  }
+  return weeks;
 };
 
 export const isWeekend = (date: Date): boolean => {

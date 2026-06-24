@@ -43,9 +43,18 @@ export {
   nextDateRange,
   useDateRange,
 } from "./utils/dateRange";
+export {
+  type MonthGrid,
+  type MonthGridDay,
+  type MonthGridWeek,
+  type MonthGridWeekday,
+  type UseMonthGridOptions,
+  useMonthGrid,
+} from "./utils/monthGrid";
 export { expandRecurringEvents } from "./utils/recurrence";
 export { eventsInTimeZone, toZonedTime } from "./utils/timezone";
 export {
+  buildMonthWeeks,
   getWeekDays,
   getIsToday,
   isWeekend,

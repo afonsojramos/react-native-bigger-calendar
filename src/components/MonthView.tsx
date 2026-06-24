@@ -1,15 +1,4 @@
-import {
-  addDays,
-  eachDayOfInterval,
-  endOfMonth,
-  endOfWeek,
-  format,
-  type Locale,
-  isSameMonth,
-  startOfDay,
-  startOfMonth,
-  startOfWeek,
-} from "date-fns";
+import { format, type Locale, isSameMonth, startOfDay } from "date-fns";
 import { memo, useMemo, useState } from "react";
 import {
   type LayoutChangeEvent,
@@ -29,7 +18,7 @@ import {
   isWithinDateRange,
   useCalendarSelection,
 } from "../utils/dateRange";
-import { getIsToday, isSameCalendarDay, isWeekend } from "../utils/dates";
+import { buildMonthWeeks, getIsToday, isSameCalendarDay, isWeekend } from "../utils/dates";
 import { monthEventCapacity, monthVisibleCount } from "../utils/eventDisplay";
 import { eventDayKeys, isAllDayEvent } from "../utils/layout";
 
@@ -44,14 +33,6 @@ const FALLBACK_VISIBLE_COUNT = 3;
 
 const numericStyle = (value: number | string | undefined, fallback: number) =>
   typeof value === "number" ? value : fallback;
-
-const chunkIntoWeeks = (days: Date[]): Date[][] => {
-  const weeks: Date[][] = [];
-  for (let index = 0; index < days.length; index += 7) {
-    weeks.push(days.slice(index, index + 7));
-  }
-  return weeks;
-};
 
 export type MonthViewProps<T> = {
   date: Date;
@@ -140,15 +121,10 @@ function MonthViewInner<T>({
   // Measured grid height, used to auto-fit the event chips per cell.
   const [gridHeight, setGridHeight] = useState(0);
 
-  const weeks = useMemo(() => {
-    const start = startOfWeek(startOfMonth(date), { weekStartsOn });
-    const naturalEnd = endOfWeek(endOfMonth(date), { weekStartsOn });
-    // Pad to six rows (42 days) for a fixed-height grid; some months span only
-    // four or five weeks.
-    const end = showSixWeeks ? addDays(start, 41) : naturalEnd;
-    const chunked = chunkIntoWeeks(eachDayOfInterval({ start, end }));
-    return isRTL ? chunked.map((week) => [...week].reverse()) : chunked;
-  }, [date, weekStartsOn, isRTL, showSixWeeks]);
+  const weeks = useMemo(
+    () => buildMonthWeeks(date, weekStartsOn, { showSixWeeks, isRTL }),
+    [date, weekStartsOn, isRTL, showSixWeeks],
+  );
 
   // How many chips fit per cell: a fixed cap when `maxVisibleEventCount` is set,
   // else derived from the measured cell height and the (default) chip metrics.
