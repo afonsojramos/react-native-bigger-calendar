@@ -75,6 +75,7 @@ type WebKeyTarget = {
 
 const MINUTES_PER_HOUR = 60;
 const HOURS_PER_DAY = 24;
+const MINUTES_PER_DAY = MINUTES_PER_HOUR * HOURS_PER_DAY;
 // Steps rendered either side of the current page. LegendList virtualises, so
 // only a few mount at once; a wide window means the user effectively never runs
 // out of pages to swipe. Items are keyed by date and never recycled.
@@ -147,6 +148,11 @@ type AnimatedEventBoxProps<T> = {
   minHour: number;
   left: number;
   width: number;
+  // Drag-to-move across days needs the column width and this box's day index
+  // within the visible range, so a horizontal drag maps to (and clamps to) days.
+  dayWidth: number;
+  dayIndex: number;
+  dayCount: number;
   mode: CalendarMode;
   renderEvent: RenderEvent<T>;
   snapMinutes: number;
@@ -162,6 +168,9 @@ function AnimatedEventBox<T>({
   minHour,
   left,
   width,
+  dayWidth,
+  dayIndex,
+  dayCount,
   mode,
   renderEvent,
   snapMinutes,
@@ -180,7 +189,9 @@ function AnimatedEventBox<T>({
   const resizable = draggable && !positioned.continuesAfter;
 
   // Live preview offsets (px), reset to 0 once the committed change re-renders.
+  // moveOffsetX shifts the box across day columns during a cross-day drag.
   const moveOffset = useSharedValue(0);
+  const moveOffsetX = useSharedValue(0);
   const resizeDelta = useSharedValue(0);
 
   // Live pixel height of the box, driven on the UI thread by the shared
@@ -197,6 +208,7 @@ function AnimatedEventBox<T>({
     () => ({
       top: (positioned.startHours - minHour) * cellHeight.value + moveOffset.value,
       height: boxHeight.value,
+      transform: [{ translateX: moveOffsetX.value }],
     }),
     [positioned.startHours, positioned.durationHours, minHour],
   );
@@ -209,8 +221,10 @@ function AnimatedEventBox<T>({
     // eslint-disable-next-line react-hooks/immutability -- Reanimated shared value: assigning .value is the intended mutation API
     moveOffset.value = 0;
     // eslint-disable-next-line react-hooks/immutability -- Reanimated shared value: assigning .value is the intended mutation API
+    moveOffsetX.value = 0;
+    // eslint-disable-next-line react-hooks/immutability -- Reanimated shared value: assigning .value is the intended mutation API
     resizeDelta.value = 0;
-  }, [positioned.startHours, positioned.durationHours, moveOffset, resizeDelta]);
+  }, [positioned.startHours, positioned.durationHours, moveOffset, moveOffsetX, resizeDelta]);
 
   // Keep the latest event/handler in a ref so the gestures stay memoized but
   // never call into a stale closure.
@@ -249,24 +263,48 @@ function AnimatedEventBox<T>({
       })
       .onUpdate((event) => {
         moveOffset.value = event.translationY;
+        moveOffsetX.value = event.translationX;
       })
       .onEnd((event) => {
-        const delta = snapDeltaMinutes(event.translationY, cellHeight.value, snapMinutes);
-        if (delta === 0) {
+        const minuteDelta = snapDeltaMinutes(event.translationY, cellHeight.value, snapMinutes);
+        // Map the horizontal drag to whole day columns, clamped so the event
+        // can't leave the visible range.
+        const rawDayDelta = dayWidth > 0 ? Math.round(event.translationX / dayWidth) : 0;
+        const targetDay = Math.min(Math.max(dayIndex + rawDayDelta, 0), dayCount - 1);
+        const dayDelta = targetDay - dayIndex;
+        if (minuteDelta === 0 && dayDelta === 0) {
           moveOffset.value = 0;
+          moveOffsetX.value = 0;
           return;
         }
         // Hold the snapped position so the box doesn't flash back to the
         // original before the committed re-render lands.
-        moveOffset.value = (delta / MINUTES_PER_HOUR) * cellHeight.value;
-        runOnJS(commitDrag)(delta, delta);
+        moveOffset.value = (minuteDelta / MINUTES_PER_HOUR) * cellHeight.value;
+        moveOffsetX.value = dayDelta * dayWidth;
+        // Fold the day shift into the minute delta; shiftMinutes carries it into
+        // the date, so both edges move together and the duration is preserved.
+        const totalDelta = minuteDelta + dayDelta * MINUTES_PER_DAY;
+        runOnJS(commitDrag)(totalDelta, totalDelta);
       });
-    // Native: long-press to pick up. Web: activate past a small vertical
-    // threshold so clicks and right-clicks pass through.
+    // Native: long-press to pick up. Web: activate past a small drag in either
+    // axis so clicks/right-clicks pass through but horizontal drags still move.
     return isWeb
-      ? pan.activeOffsetY([-DRAG_ACTIVATE_PX, DRAG_ACTIVATE_PX])
+      ? pan
+          .activeOffsetX([-DRAG_ACTIVATE_PX, DRAG_ACTIVATE_PX])
+          .activeOffsetY([-DRAG_ACTIVATE_PX, DRAG_ACTIVATE_PX])
       : pan.activateAfterLongPress(DRAG_ACTIVATE_MS);
-  }, [draggable, snapMinutes, cellHeight, moveOffset, commitDrag, notifyDragStart]);
+  }, [
+    draggable,
+    snapMinutes,
+    cellHeight,
+    moveOffset,
+    moveOffsetX,
+    dayWidth,
+    dayIndex,
+    dayCount,
+    commitDrag,
+    notifyDragStart,
+  ]);
 
   const resizeGesture = useMemo(
     () =>
@@ -896,6 +934,9 @@ function TimetablePageInner<T>({
                       minHour={minHour}
                       left={dayLeft(dayIndex) + positioned.column * columnWidth}
                       width={columnWidth}
+                      dayWidth={dayWidth}
+                      dayIndex={dayIndex}
+                      dayCount={days.length}
                       mode={mode}
                       renderEvent={renderEvent}
                       snapMinutes={snapMinutes}
