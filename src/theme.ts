@@ -18,6 +18,12 @@ export interface CalendarTheme {
     todayBackground: string;
     /** Text on top of the today badge. */
     todayText: string;
+    /** Fill of a selected day's badge (month-view date selection / range endpoints). */
+    selectedBackground: string;
+    /** Text on top of a selected day's badge. */
+    selectedText: string;
+    /** Band behind days inside a selected range (month view). */
+    rangeBackground: string;
     /** The current-time indicator line on the week/day grid. */
     nowIndicator: string;
     /** Default text colour (day numbers, weekday labels). */
@@ -56,6 +62,9 @@ export const defaultTheme: CalendarTheme = {
     outsideHoursBackground: "#F1F2F4",
     todayBackground: "#1F6FEB",
     todayText: "#FFFFFF",
+    selectedBackground: "#1F6FEB",
+    selectedText: "#FFFFFF",
+    rangeBackground: "#DCE7FF",
     nowIndicator: "#E5484D",
     text: "#1A1B1E",
     textMuted: "#6B7280",
@@ -86,6 +95,9 @@ export const darkTheme: CalendarTheme = {
     outsideHoursBackground: "#101216",
     todayBackground: "#1F6FEB",
     todayText: "#FFFFFF",
+    selectedBackground: "#1F6FEB",
+    selectedText: "#FFFFFF",
+    rangeBackground: "#243B53",
     nowIndicator: "#E5484D",
     text: "#ECEDEE",
     textMuted: "#9BA1A6",
