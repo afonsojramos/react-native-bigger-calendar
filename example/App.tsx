@@ -8,6 +8,7 @@ import {
   type CalendarEvent,
   type CalendarMode,
   type DateRange,
+  MonthList,
   useDateRange,
 } from "react-native-super-calendar";
 import { EventContextMenu } from "./components/EventContextMenu";
@@ -31,9 +32,10 @@ type EventMeta = {
 
 const MODES: CalendarMode[] = ["month", "week", "3days", "day", "schedule"];
 
-// The mode tabs plus a "picker" tab that demos range selection via useDateRange.
-type DemoTab = CalendarMode | "picker";
-const TABS: DemoTab[] = [...MODES, "picker"];
+// The mode tabs plus a "picker" tab (range selection via useDateRange) and a
+// "list" tab (the vertically-scrolling MonthList).
+type DemoTab = CalendarMode | "picker" | "list";
+const TABS: DemoTab[] = [...MODES, "picker", "list"];
 
 // Human-readable summary of the current range-selection state for the banner.
 function rangeLabel(range: DateRange | null): string {
@@ -109,7 +111,9 @@ export default function App() {
   const [date, setDate] = useState(() => new Date());
   const [events, setEvents] = useState<CalendarEvent<EventMeta>[]>(buildEvents);
   // Range selection for the "picker" tab; onPressDate wires to month-cell taps.
-  const { range, onPressDate, reset } = useDateRange();
+  // Disallow past dates so the picker also demonstrates disabled days.
+  const pickerMinDate = useMemo(() => new Date(), []);
+  const { range, onPressDate, reset } = useDateRange({ minDate: pickerMinDate });
   // DEMO_MODE pins the view when set; otherwise the tab bar drives it.
   const activeMode: DemoTab = DEMO_MODE ?? mode;
 
@@ -169,11 +173,25 @@ export default function App() {
                 events={[]}
                 weekStartsOn={1}
                 selectedRange={range ?? undefined}
+                minDate={pickerMinDate}
                 onChangeDate={setDate}
                 onPressEvent={() => {}}
                 onPressDay={onPressDate}
               />
             </View>
+          ) : activeMode === "list" ? (
+            <EventMenuProvider value={menuActions}>
+              <MonthList
+                date={date}
+                events={events}
+                weekStartsOn={1}
+                renderEvent={EventContextMenu}
+                keyExtractor={(event) => event.id}
+                onChangeVisibleMonth={setDate}
+                onPressEvent={(event) => console.log("press event:", event.title)}
+                onPressDay={(day) => console.log("press day:", day.toDateString())}
+              />
+            </EventMenuProvider>
           ) : (
             <EventMenuProvider value={menuActions}>
               <Calendar
