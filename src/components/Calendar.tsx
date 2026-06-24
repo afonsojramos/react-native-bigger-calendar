@@ -70,6 +70,14 @@ export type CalendarProps<T> = {
   resetPageOnPressCell?: boolean;
   /** Long-press empty space on the week/day grid; receives the date+time. */
   onLongPressCell?: (date: Date) => void;
+  /**
+   * Enable drag-to-create on the week/day grid: long-press empty space and drag
+   * to sweep out a new event's time range. Called on release with the snapped
+   * `start`/`end` (to `dragStepMinutes`); create your own event in response. A
+   * stationary press yields a one-step range. Native-only; supersedes
+   * `onLongPressCell` on empty space when set.
+   */
+  onCreateEvent?: (start: Date, end: Date) => void;
   /** Tap a day's column header on the week/day grid (default header only). */
   onPressDateHeader?: (date: Date) => void;
   /**
@@ -213,6 +221,7 @@ export function Calendar<T>({
   onPressCell,
   resetPageOnPressCell,
   onLongPressCell,
+  onCreateEvent,
   onPressDateHeader,
   maxVisibleEventCount,
   sortedMonthView,
@@ -392,6 +401,7 @@ export function Calendar<T>({
           onPressCell={onPressCell}
           resetPageOnPressCell={resetPageOnPressCell}
           onLongPressCell={onLongPressCell}
+          onCreateEvent={onCreateEvent}
           onPressDateHeader={onPressDateHeader}
           onChangeDate={handleChangeDate}
           renderHeader={renderTimeGridHeader}

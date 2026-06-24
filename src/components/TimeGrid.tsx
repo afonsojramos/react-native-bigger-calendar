@@ -55,7 +55,7 @@ import {
   isWeekend,
   viewDayCount,
 } from "../utils/dates";
-import { resolveDraggedBounds, snapDeltaMinutes } from "../utils/drag";
+import { cellRangeFromDrag, resolveDraggedBounds, snapDeltaMinutes } from "../utils/drag";
 import { layoutDayEvents, type PositionedEvent } from "../utils/layout";
 import { useWebGridZoom } from "../utils/useWebGridZoom";
 import { useWebPagerKeys } from "../utils/useWebPagerKeys";
@@ -457,6 +457,7 @@ type TimetablePageProps<T> = {
   onDragStart?: EventDragStartHandler<T>;
   onPressCell?: (date: Date) => void;
   onLongPressCell?: (date: Date) => void;
+  onCreateEvent?: (start: Date, end: Date) => void;
 };
 
 // A single date's grid: the pinch-zoomable, vertically-scrolling time column.
@@ -497,6 +498,7 @@ function TimetablePageInner<T>({
   onDragStart,
   onPressCell,
   onLongPressCell,
+  onCreateEvent,
 }: TimetablePageProps<T>) {
   const theme = useCalendarTheme();
   const { width } = useWindowDimensions();
@@ -599,6 +601,102 @@ function TimetablePageInner<T>({
     return Gesture.Simultaneous(pinch, Gesture.Native());
   }, [cellHeight, committedCellHeight, pinchStartCellHeight, minHourHeight, maxHourHeight]);
 
+  // Drag-to-create: long-press empty grid and drag to sweep out a new event.
+  // Web has the context-menu / tap path instead (a drag overlay would intercept
+  // clicks), so this stays native-only like move/resize.
+  const createEnabled = onCreateEvent != null && !isWeb;
+  // Live ghost-box geometry (px), driven on the UI thread during the sweep.
+  const createActive = useSharedValue(0);
+  const createTop = useSharedValue(0);
+  const createHeight = useSharedValue(0);
+  const createLeft = useSharedValue(0);
+  const createWidth = useSharedValue(0);
+  const createStartY = useSharedValue(0);
+  const createDayIndex = useSharedValue(0);
+
+  const commitCreate = useCallback(
+    (startY: number, endY: number, dayIndex: number) => {
+      const day = days[dayIndex];
+      if (!day) return;
+      const range = cellRangeFromDrag(day, startY, endY, heightSource.value, minHour, snapMinutes);
+      if (range) onCreateEvent?.(range.start, range.end);
+    },
+    [days, heightSource, minHour, snapMinutes, onCreateEvent],
+  );
+
+  const createGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .enabled(createEnabled)
+        .activateAfterLongPress(DRAG_ACTIVATE_MS)
+        .onStart((event) => {
+          const idx = days.length === 1 ? 0 : Math.floor(event.x / dayWidth);
+          createDayIndex.value = idx;
+          createStartY.value = event.y;
+          createLeft.value = hourColumnWidth + idx * dayWidth;
+          createWidth.value = dayWidth;
+          createTop.value = event.y;
+          createHeight.value = 0;
+          createActive.value = 1;
+        })
+        .onUpdate((event) => {
+          const stepPx = (snapMinutes / MINUTES_PER_HOUR) * heightSource.value;
+          const snap = (y: number) => (stepPx > 0 ? Math.round(y / stepPx) * stepPx : y);
+          const startSnap = snap(createStartY.value);
+          const endSnap = snap(createStartY.value + event.translationY);
+          createTop.value = Math.min(startSnap, endSnap);
+          createHeight.value = Math.max(Math.abs(endSnap - startSnap), stepPx);
+        })
+        .onEnd((event) => {
+          runOnJS(commitCreate)(
+            createStartY.value,
+            createStartY.value + event.translationY,
+            createDayIndex.value,
+          );
+          createActive.value = 0;
+          createHeight.value = 0;
+        }),
+    [
+      createEnabled,
+      days.length,
+      dayWidth,
+      hourColumnWidth,
+      heightSource,
+      snapMinutes,
+      commitCreate,
+      createActive,
+      createTop,
+      createHeight,
+      createLeft,
+      createWidth,
+      createStartY,
+      createDayIndex,
+    ],
+  );
+
+  const createGhostStyle = useAnimatedStyle(() => ({
+    top: createTop.value,
+    height: createHeight.value,
+    left: createLeft.value,
+    width: createWidth.value,
+    opacity: createActive.value,
+  }));
+
+  // The tap/long-press layer behind events; wrapped in the create gesture when
+  // drag-to-create is on. Hidden from screen readers (a convenience gesture).
+  const cellLayer =
+    onPressCell || onLongPressCell || createEnabled ? (
+      <Pressable
+        style={[styles.cellPressLayer, { left: hourColumnWidth }]}
+        onPress={onPressCell ? handleBackgroundPress : undefined}
+        // When create is on, a long-press starts the create-drag, so don't also
+        // fire the consumer's long-press handler.
+        onLongPress={!createEnabled && onLongPressCell ? handleBackgroundLongPress : undefined}
+        importantForAccessibility="no"
+        accessibilityElementsHidden
+      />
+    ) : null;
+
   return (
     <View style={styles.container}>
       <AllDayLane
@@ -626,18 +724,13 @@ function TimetablePageInner<T>({
           }}
         >
           <Animated.View style={[styles.content, fullHeightStyle]}>
-            {onPressCell || onLongPressCell ? (
-              // Behind the events, so empty-space taps create while event taps
-              // still hit their box. Hidden from screen readers (a convenience
-              // gesture, not the primary create path).
-              <Pressable
-                style={[styles.cellPressLayer, { left: hourColumnWidth }]}
-                onPress={onPressCell ? handleBackgroundPress : undefined}
-                onLongPress={onLongPressCell ? handleBackgroundLongPress : undefined}
-                importantForAccessibility="no"
-                accessibilityElementsHidden
-              />
-            ) : null}
+            {/* Behind the events, so empty-space taps/drags create while event
+                taps still hit their box. */}
+            {createEnabled ? (
+              <GestureDetector gesture={createGesture}>{cellLayer}</GestureDetector>
+            ) : (
+              cellLayer
+            )}
 
             {days.map((day, dayIndex) =>
               isWeekend(day) ? (
@@ -752,6 +845,20 @@ function TimetablePageInner<T>({
                 color={theme.colors.nowIndicator}
               />
             ) : null}
+
+            {createEnabled ? (
+              <Animated.View
+                pointerEvents="none"
+                style={[
+                  styles.createGhost,
+                  {
+                    backgroundColor: theme.colors.eventBackground,
+                    borderColor: theme.colors.todayBackground,
+                  },
+                  createGhostStyle,
+                ]}
+              />
+            ) : null}
           </Animated.View>
         </Animated.ScrollView>
       </GestureDetector>
@@ -831,6 +938,7 @@ export type TimeGridProps<T> = {
   onDragStart?: EventDragStartHandler<T>;
   onPressCell?: (date: Date) => void;
   onLongPressCell?: (date: Date) => void;
+  onCreateEvent?: (start: Date, end: Date) => void;
   /** Tap a day's column header (default header only). */
   onPressDateHeader?: (date: Date) => void;
   onChangeDate: (date: Date) => void;
@@ -879,6 +987,7 @@ function TimeGridInner<T>({
   onDragStart,
   onPressCell,
   onLongPressCell,
+  onCreateEvent,
   onPressDateHeader,
   onChangeDate,
   renderHeader,
@@ -1054,6 +1163,7 @@ function TimeGridInner<T>({
           onDragStart={onDragStart}
           onPressCell={handlePressCell}
           onLongPressCell={onLongPressCell}
+          onCreateEvent={onCreateEvent}
         />
       </View>
     ),
@@ -1093,6 +1203,7 @@ function TimeGridInner<T>({
       onDragStart,
       handlePressCell,
       onLongPressCell,
+      onCreateEvent,
     ],
   );
 
@@ -1303,6 +1414,12 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     right: 0,
+  },
+  createGhost: {
+    position: "absolute",
+    borderRadius: 6,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginHorizontal: EVENT_GAP,
   },
   weekendColumn: {
     position: "absolute",
