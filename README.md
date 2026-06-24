@@ -185,11 +185,12 @@ The built-in renderer hard-clips a title that overflows its box. Pass
 ### Drag to move and resize
 
 Pass `onDragEvent` to make events draggable on the week/day grid. Move an event
-(**long-press** it on native, **click-drag** it on web) or **drag the grip at its
-bottom edge** to resize. The handler receives the new `start`/`end`, snapped to
-`dragStepMinutes` (default 15) — update your own event state in response. On web
-a plain click still selects and right-click still fires, so drag coexists with
-both:
+(**long-press** it on native, **click-drag** it on web) — drag **vertically to
+change the time, horizontally to move it to another day** (within the visible
+range) — or **drag the grip at its bottom edge** to resize. The handler receives
+the new `start`/`end`, snapped to `dragStepMinutes` (default 15) — update your own
+event state in response. On web a plain click still selects and right-click still
+fires, so drag coexists with both:
 
 ```tsx
 <Calendar
