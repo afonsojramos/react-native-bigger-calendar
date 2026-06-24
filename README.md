@@ -29,6 +29,29 @@ modern list virtualization — trading framework-agnosticism for a richer,
 gesture-driven experience. It's **not a fork**; the API differs, and the name is
 an homage. 🙇
 
+### At a glance
+
+| Capability                                   | react-native-bigger-calendar               | react-native-big-calendar       |
+| -------------------------------------------- | ------------------------------------------ | ------------------------------- |
+| Month / week / day / 3-day / custom / agenda | ✅                                         | ✅                              |
+| Generic event typing (`CalendarEvent<T>`)    | ✅                                         | ✅                              |
+| Virtualized, snap-paged views                | ✅                                         | ❌ renders all dates            |
+| Pinch-to-zoom (native) / Ctrl-scroll (web)   | ✅                                         | ❌                              |
+| Drag to move & resize events                 | ✅                                         | ❌ (declined upstream)          |
+| Overlapping events                           | ✅ side-by-side columns                    | ⚠️ stacked / indented           |
+| Month paging fires `onChangeDate`            | ✅                                         | ⚠️ known gaps                   |
+| Recurring events                             | ✅ `expandRecurringEvents`                 | ❌ expand them yourself         |
+| Time-zone display                            | ✅ `eventsInTimeZone`                      | ❌                              |
+| Dark mode                                    | ✅ `darkTheme` preset                      | ❌ bring your own palette       |
+| `renderEvent` across every mode & event type | ✅                                         | ⚠️ breaks for all-day/multi-day |
+| Web                                          | ✅ arrow-key paging, Ctrl-scroll zoom      | ⚠️ partial                      |
+| Runtime dependencies                         | Reanimated + Gesture Handler + Legend List | dayjs + calendarize (lighter)   |
+
+Legend: ✅ supported · ⚠️ partial or with known issues · ❌ not available. The
+last row is the honest trade-off: big-calendar has a smaller footprint and fewer
+native peers, so it can be the simpler choice when you don't need the gestures,
+virtualization, or the helpers above.
+
 **What it adds over react-native-big-calendar**
 
 - 🤏 **Pinch-to-zoom** time grid — row height is a Reanimated shared value, so
