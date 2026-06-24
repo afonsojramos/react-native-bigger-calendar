@@ -2,7 +2,7 @@
 
 ## About this project
 
-- This is the Mintlify documentation site for **react-native-bigger-calendar**, a
+- This is the Mintlify documentation site for **react-native-super-calendar**, a
   gesture-driven, virtualized calendar for React Native and the web.
 - Pages are MDX files with YAML frontmatter. Configuration lives in `docs.json`.
 - The library source it documents is in `../src`; the runnable example is in
@@ -30,6 +30,6 @@
 
 ## Content boundaries
 
-- Document the public API only (exports from `react-native-bigger-calendar`).
+- Document the public API only (exports from `react-native-super-calendar`).
 - Don't document internal components or unexported helpers.
 - Don't invent props or defaults. If unsure, link to the TypeScript types.

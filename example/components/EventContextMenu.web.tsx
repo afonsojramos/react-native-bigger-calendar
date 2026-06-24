@@ -1,5 +1,5 @@
 import "../global.css";
-import { DefaultEvent, type RenderEventArgs } from "react-native-bigger-calendar";
+import { DefaultEvent, type RenderEventArgs } from "react-native-super-calendar";
 import {
   ContextMenu,
   ContextMenuContent,

@@ -16,11 +16,11 @@ compatible versions.
   <Step title="Add the package and peers">
     <CodeGroup>
     ```bash npm
-    npx expo install react-native-bigger-calendar react-native-reanimated react-native-gesture-handler react-native-worklets @legendapp/list date-fns
+    npx expo install react-native-super-calendar react-native-reanimated react-native-gesture-handler react-native-worklets @legendapp/list date-fns
     ```
 
     ```bash pnpm
-    pnpm add react-native-bigger-calendar react-native-reanimated react-native-gesture-handler react-native-worklets @legendapp/list date-fns
+    pnpm add react-native-super-calendar react-native-reanimated react-native-gesture-handler react-native-worklets @legendapp/list date-fns
     ```
     </CodeGroup>
 
@@ -45,7 +45,7 @@ compatible versions.
 
     ```tsx
     import { useState } from "react";
-    import { Calendar, type CalendarEvent, type CalendarMode } from "react-native-bigger-calendar";
+    import { Calendar, type CalendarEvent, type CalendarMode } from "react-native-super-calendar";
 
     const events: CalendarEvent[] = [
       { title: "Standup", start: new Date(2026, 5, 23, 9, 0), end: new Date(2026, 5, 23, 9, 30) },

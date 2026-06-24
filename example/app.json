@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Bigger Calendar Example",
-    "slug": "react-native-bigger-calendar-example",
+    "slug": "react-native-super-calendar-example",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "rnbc-example",
@@ -9,10 +9,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.example.biggercalendar"
+      "bundleIdentifier": "com.example.supercalendar"
     },
     "android": {
-      "package": "com.example.biggercalendar"
+      "package": "com.example.supercalendar"
     }
   }
 }

@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "react-native-bigger-calendar",
+  "name": "react-native-super-calendar",
   "colors": {
     "primary": "#1F6FEB",
     "light": "#4D8DF5",
@@ -40,12 +40,12 @@
     "links": [
       {
         "label": "npm",
-        "href": "https://www.npmjs.com/package/react-native-bigger-calendar"
+        "href": "https://www.npmjs.com/package/react-native-super-calendar"
       }
     ],
     "primary": {
       "type": "github",
-      "href": "https://github.com/afonsojramos/react-native-bigger-calendar"
+      "href": "https://github.com/afonsojramos/react-native-super-calendar"
     }
   },
   "contextual": {
@@ -53,7 +53,7 @@
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/afonsojramos/react-native-bigger-calendar"
+      "github": "https://github.com/afonsojramos/react-native-super-calendar"
     }
   }
 }

@@ -1,16 +1,16 @@
-<h1 align="center">react-native-bigger-calendar</h1>
+<h1 align="center">react-native-super-calendar</h1>
 
 <p align="center">A generic, themeable <strong>month / week / day</strong> calendar for React Native.</p>
 
 <p align="center">
-  <a href="https://npmx.dev/package/react-native-bigger-calendar"><img alt="npm version" src="https://img.shields.io/npm/v/react-native-bigger-calendar?style=flat-square&amp;color=1F6FEB" /></a>
-  <a href="https://npmx.dev/package/react-native-bigger-calendar"><img alt="downloads per month" src="https://img.shields.io/npm/dm/react-native-bigger-calendar?style=flat-square" /></a>
-  <a href="https://github.com/afonsojramos/react-native-bigger-calendar/actions/workflows/ci.yml"><img alt="CI status" src="https://img.shields.io/github/actions/workflow/status/afonsojramos/react-native-bigger-calendar/ci.yml?branch=main&amp;style=flat-square&amp;label=CI" /></a>
-  <a href="#license"><img alt="MIT license" src="https://img.shields.io/npm/l/react-native-bigger-calendar?style=flat-square" /></a>
+  <a href="https://npmx.dev/package/react-native-super-calendar"><img alt="npm version" src="https://img.shields.io/npm/v/react-native-super-calendar?style=flat-square&amp;color=1F6FEB" /></a>
+  <a href="https://npmx.dev/package/react-native-super-calendar"><img alt="downloads per month" src="https://img.shields.io/npm/dm/react-native-super-calendar?style=flat-square" /></a>
+  <a href="https://github.com/afonsojramos/react-native-super-calendar/actions/workflows/ci.yml"><img alt="CI status" src="https://img.shields.io/github/actions/workflow/status/afonsojramos/react-native-super-calendar/ci.yml?branch=main&amp;style=flat-square&amp;label=CI" /></a>
+  <a href="#license"><img alt="MIT license" src="https://img.shields.io/npm/l/react-native-super-calendar?style=flat-square" /></a>
 </p>
 
 <p align="center">
-  <img alt="Month, week, 3-day, day and schedule views of react-native-bigger-calendar" src="./.github/assets/preview.png" />
+  <img alt="Month, week, 3-day, day and schedule views of react-native-super-calendar" src="./.github/assets/preview.png" />
 </p>
 
 - 📆 Month grid plus day / 3-day / week / custom-N time-grids
@@ -31,7 +31,7 @@ an homage. 🙇
 
 ### At a glance
 
-| Capability                                   | react-native-bigger-calendar               | react-native-big-calendar       |
+| Capability                                   | react-native-super-calendar                | react-native-big-calendar       |
 | -------------------------------------------- | ------------------------------------------ | ------------------------------- |
 | Month / week / day / 3-day / custom / agenda | ✅                                         | ✅                              |
 | Generic event typing (`CalendarEvent<T>`)    | ✅                                         | ✅                              |
@@ -91,7 +91,7 @@ side-by-side columns automatically.
 ## Install
 
 ```sh
-npm install react-native-bigger-calendar
+npm install react-native-super-calendar
 ```
 
 ### Peer dependencies
@@ -109,7 +109,7 @@ plugin, `GestureHandlerRootView` at the root of your app).
 
 ```tsx
 import { useState } from "react";
-import { Calendar, type CalendarEvent } from "react-native-bigger-calendar";
+import { Calendar, type CalendarEvent } from "react-native-super-calendar";
 
 type MyEvent = { id: string; color: string };
 
@@ -159,7 +159,7 @@ detail progressively without re-rendering:
 ```tsx
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { Pressable, Text } from "react-native";
-import type { RenderEventArgs } from "react-native-bigger-calendar";
+import type { RenderEventArgs } from "react-native-super-calendar";
 
 // Define the component once (don't inline it, or it remounts every render).
 function MyEvent({ event, boxHeight, onPress }: RenderEventArgs<MyEvent>) {
@@ -251,7 +251,7 @@ range you're showing with `expandRecurringEvents`. The calendar doesn't expand
 recurrences itself, so you control the window (and can memoize it):
 
 ```tsx
-import { Calendar, expandRecurringEvents } from "react-native-bigger-calendar";
+import { Calendar, expandRecurringEvents } from "react-native-super-calendar";
 
 const events = [
   // Every weekday standup, 20 occurrences:
@@ -278,7 +278,7 @@ IANA zone regardless of the device, run them through `eventsInTimeZone` (or a
 single date through `toZonedTime`). It's DST-correct via `Intl`:
 
 ```tsx
-import { Calendar, eventsInTimeZone } from "react-native-bigger-calendar";
+import { Calendar, eventsInTimeZone } from "react-native-super-calendar";
 
 // Render every event at its New York wall-clock time.
 <Calendar /* ... */ events={eventsInTimeZone(events, "America/New_York")} />;
@@ -306,7 +306,7 @@ For dark mode, pass the built-in `darkTheme` (switch on the system scheme with
 `useColorScheme()`):
 
 ```tsx
-import { Calendar, darkTheme, defaultTheme } from "react-native-bigger-calendar";
+import { Calendar, darkTheme, defaultTheme } from "react-native-super-calendar";
 import { useColorScheme } from "react-native";
 
 const scheme = useColorScheme();

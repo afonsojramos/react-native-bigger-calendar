@@ -8,7 +8,7 @@ IANA zone regardless of the device, run them through `eventsInTimeZone` (or a
 single date through `toZonedTime`). It's DST-correct via `Intl`.
 
 ```tsx
-import { Calendar, eventsInTimeZone } from "react-native-bigger-calendar";
+import { Calendar, eventsInTimeZone } from "react-native-super-calendar";
 
 // Render every event at its New York wall-clock time.
 <Calendar /* ... */ events={eventsInTimeZone(events, "America/New_York")} />;

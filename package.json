@@ -1,5 +1,5 @@
 {
-  "name": "react-native-bigger-calendar",
+  "name": "react-native-super-calendar",
   "version": "0.5.0",
   "description": "A generic, themeable month/week/day calendar for React Native with pinch-to-zoom, virtualized paging, and a render-prop event API.",
   "keywords": [
@@ -14,14 +14,14 @@
     "web",
     "week-view"
   ],
-  "homepage": "https://github.com/afonsojramos/react-native-bigger-calendar#readme",
+  "homepage": "https://github.com/afonsojramos/react-native-super-calendar#readme",
   "bugs": {
-    "url": "https://github.com/afonsojramos/react-native-bigger-calendar/issues"
+    "url": "https://github.com/afonsojramos/react-native-super-calendar/issues"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/afonsojramos/react-native-bigger-calendar.git"
+    "url": "git+https://github.com/afonsojramos/react-native-super-calendar.git"
   },
   "source": "./src/index.tsx",
   "files": [

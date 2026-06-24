@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { Calendar, type CalendarEvent, type CalendarMode } from "react-native-bigger-calendar";
+import { Calendar, type CalendarEvent, type CalendarMode } from "react-native-super-calendar";
 import { EventContextMenu } from "./components/EventContextMenu";
 import { EventMenuProvider, type EventMenuActions } from "./components/EventMenu";
 

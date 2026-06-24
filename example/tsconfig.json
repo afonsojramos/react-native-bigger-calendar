@@ -4,7 +4,7 @@
     "strict": true,
     "jsx": "react-jsx",
     "paths": {
-      "react-native-bigger-calendar": ["../src/index.tsx"]
+      "react-native-super-calendar": ["../src/index.tsx"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"]

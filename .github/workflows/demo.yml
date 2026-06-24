@@ -30,8 +30,8 @@ jobs:
       - run: pnpm --dir example install --frozen-lockfile
       - run: pnpm --dir example exec expo export --platform web
         env:
-          # Served from https://<user>.github.io/react-native-bigger-calendar/
-          EXPO_BASE_URL: /react-native-bigger-calendar
+          # Served from https://<user>.github.io/react-native-super-calendar/
+          EXPO_BASE_URL: /react-native-super-calendar
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
