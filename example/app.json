@@ -1,18 +1,31 @@
 {
   "expo": {
-    "name": "Bigger Calendar Example",
+    "name": "Super Calendar Example",
     "slug": "react-native-super-calendar-example",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "scheme": "rnbc-example",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#3D7BE0"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.example.supercalendar"
     },
     "android": {
-      "package": "com.example.supercalendar"
+      "package": "com.example.supercalendar",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#3D7BE0"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     }
   }
 }
