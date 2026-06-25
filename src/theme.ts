@@ -18,11 +18,11 @@ export interface CalendarTheme {
     todayBackground: string;
     /** Text on top of the today badge. */
     todayText: string;
-    /** Fill of a selected day's badge (month-view date selection / range endpoints). */
+    /** Reserved for an opt-in selected-day badge; the default band selection does not use it. */
     selectedBackground: string;
-    /** Text on top of a selected day's badge. */
+    /** Reserved for the opt-in selected-day badge's text; unused by default. */
     selectedText: string;
-    /** Band behind days inside a selected range (month view). */
+    /** Background band behind selected days (single, multiple, or a range) in the month grid. */
     rangeBackground: string;
     /** The current-time indicator line on the week/day grid. */
     nowIndicator: string;
