@@ -45,8 +45,10 @@ const PAGE_WINDOW = 60;
 const VIEWABILITY = { itemVisiblePercentThreshold: 60 };
 // Each month block is the title plus its own week rows. Sizing per month (rather
 // than a fixed height) keeps row heights consistent and avoids a blank padding
-// row, since months show only their own days (no adjacent-month fill).
-const MONTH_HEADER_HEIGHT = 44;
+// row, since months show only their own days (no adjacent-month fill). The
+// header height is a single source of truth: it sets the title's box, the block
+// height, and the drag hit-test, so the rendered layout and the mapping agree.
+const DEFAULT_MONTH_HEADER_HEIGHT = 44;
 const DEFAULT_WEEK_ROW_HEIGHT = 56;
 // Drag-to-select: native holds to start (so a scroll/tap isn't hijacked) then
 // pans across months; nearing an edge auto-scrolls the list.
@@ -69,6 +71,11 @@ export type MonthListProps<T> = {
   weekStartsOn: WeekStartsOn;
   /** Height of each week row (px). The month block sizes to its row count. Default 56. */
   weekRowHeight?: number;
+  /**
+   * Height of each month's title row (px). Default 44. A custom `renderMonthHeader`
+   * must fit this height, since it also anchors the drag hit-test.
+   */
+  monthHeaderHeight?: number;
   maxVisibleEventCount?: number;
   locale?: Locale;
   sortedMonthView?: boolean;
@@ -110,6 +117,7 @@ function MonthListInner<T>({
   events = NO_EVENTS as CalendarEvent<T>[],
   weekStartsOn,
   weekRowHeight = DEFAULT_WEEK_ROW_HEIGHT,
+  monthHeaderHeight = DEFAULT_MONTH_HEADER_HEIGHT,
   maxVisibleEventCount,
   locale,
   sortedMonthView,
@@ -172,8 +180,8 @@ function MonthListInner<T>({
   // Each month is as tall as its own week rows (4–6) plus the title; no padding
   // row, since adjacent-month days aren't filled in.
   const blockHeightAt = useCallback(
-    (index: number) => MONTH_HEADER_HEIGHT + monthWeeks[index].length * weekRowHeight,
-    [monthWeeks, weekRowHeight],
+    (index: number) => monthHeaderHeight + monthWeeks[index].length * weekRowHeight,
+    [monthWeeks, weekRowHeight, monthHeaderHeight],
   );
   const getFixedItemSize = useCallback(
     (_item: Date, index: number) => blockHeightAt(index),
@@ -213,7 +221,7 @@ function MonthListInner<T>({
       const clampedY = Math.min(Math.max(contentY, 0), offsets[offsets.length - 1] - 1);
       let index = 0;
       while (index < monthWeeks.length - 1 && offsets[index + 1] <= clampedY) index++;
-      const localY = clampedY - offsets[index] - MONTH_HEADER_HEIGHT;
+      const localY = clampedY - offsets[index] - monthHeaderHeight;
       if (localY < 0) return null; // on the month title
       const weeks = monthWeeks[index];
       const row = Math.min(weeks.length - 1, Math.max(0, Math.floor(localY / weekRowHeight)));
@@ -223,7 +231,15 @@ function MonthListInner<T>({
       if (!showAdjacentMonths && !isSameMonth(day, monthDates[index])) return null;
       return isSelectable(day) ? day : null;
     },
-    [offsets, monthWeeks, monthDates, weekRowHeight, showAdjacentMonths, isSelectable],
+    [
+      offsets,
+      monthWeeks,
+      monthDates,
+      weekRowHeight,
+      monthHeaderHeight,
+      showAdjacentMonths,
+      isSelectable,
+    ],
   );
 
   const extendTo = useCallback(
@@ -332,6 +348,8 @@ function MonthListInner<T>({
   }, []);
   const handleViewableItemsChanged = useCallback(
     (info: OnViewableItemsChangedInfo<Date>) => {
+      // Report the topmost month that's at least ~60% visible (the viewability
+      // threshold), i.e. the one anchored at the top of the viewport.
       const settled = info.viewableItems.find((token) => token.isViewable);
       if (settled?.item && onChangeVisibleMonth) onChangeVisibleMonth(settled.item);
     },
@@ -342,14 +360,21 @@ function MonthListInner<T>({
   const renderItem = useCallback(
     ({ item, index }: LegendListRenderItemProps<Date>) => (
       <View style={{ height: blockHeightAt(index) }}>
-        {renderMonthHeader ? (
-          renderMonthHeader(item)
-        ) : (
-          <Text style={[theme.text.dayNumber, styles.monthTitle, { color: theme.colors.text }]}>
-            {format(item, "LLLL yyyy", { locale })}
-          </Text>
-        )}
+        {/* Pin the header to monthHeaderHeight so the grid below is exactly
+            weeks * weekRowHeight, keeping the drag hit-test aligned. */}
+        <View style={[styles.monthHeader, { height: monthHeaderHeight }]}>
+          {renderMonthHeader ? (
+            renderMonthHeader(item)
+          ) : (
+            <Text style={[theme.text.dayNumber, styles.monthTitle, { color: theme.colors.text }]}>
+              {format(item, "LLLL yyyy", { locale })}
+            </Text>
+          )}
+        </View>
         <View style={styles.grid}>
+          {/* Each mounted month re-groups the full events array (cheap for the
+              empty-events picker; with large event sets, group once upstream
+              and pass a per-month slice if it ever profiles as hot). */}
           <MonthView
             date={item}
             events={events}
@@ -378,6 +403,7 @@ function MonthListInner<T>({
     ),
     [
       blockHeightAt,
+      monthHeaderHeight,
       renderMonthHeader,
       theme,
       locale,
@@ -458,7 +484,8 @@ export const MonthList = memo(MonthListInner) as typeof MonthListInner;
 const styles = StyleSheet.create({
   container: { flex: 1 },
   list: { flex: 1 },
-  monthTitle: { paddingHorizontal: 8, paddingVertical: 8 },
+  monthHeader: { justifyContent: "center" },
+  monthTitle: { paddingHorizontal: 8 },
   grid: { flex: 1 },
   weekdayHeader: { flexDirection: "row", paddingBottom: 4 },
   weekdayLabel: { flex: 1, textAlign: "center" },
