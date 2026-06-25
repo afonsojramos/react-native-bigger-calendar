@@ -34,7 +34,7 @@ import {
   isDateSelectable,
 } from "../utils/dateRange";
 import { buildMonthWeeks, getWeekDays } from "../utils/dates";
-import { DefaultEvent } from "./DefaultEvent";
+import { DefaultMonthEvent } from "./DefaultMonthEvent";
 import { MonthView } from "./MonthView";
 
 const isWeb = Platform.OS === "web";
@@ -132,7 +132,7 @@ function MonthListInner<T>({
   maxDate,
   isDateDisabled,
   calendarCellStyle,
-  renderEvent = DefaultEvent,
+  renderEvent = DefaultMonthEvent,
   keyExtractor = defaultKeyExtractor as EventKeyExtractor<T>,
   onPressDay,
   onLongPressDay,
