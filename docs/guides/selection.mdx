@@ -1,0 +1,93 @@
+---
+title: Date selection
+description: Single, multiple, and range date selection with disabled days.
+---
+
+The month view can mark days as selected. Pass one of the selection props to
+`<Calendar mode="month">` and drive it from your own state via `onPressDay`.
+Selection is rendered with the theme's `selected*` and `rangeBackground` tokens.
+
+## Single and multiple days
+
+`selectedDate` marks one day; `selectedDates` marks several (they combine).
+
+```tsx
+const [selected, setSelected] = useState<Date | null>(null);
+
+<Calendar
+  mode="month"
+  date={date}
+  events={[]}
+  selectedDate={selected}
+  onChangeDate={setDate}
+  onPressDay={setSelected}
+/>;
+```
+
+## Range selection with `useDateRange`
+
+For start/end ranges, the `useDateRange` hook owns the state machine: the first
+press sets the start, the second sets the end (auto-swapping if you tap an
+earlier day), and a third press starts over.
+
+```tsx
+import { Calendar, useDateRange } from "react-native-super-calendar";
+
+function RangePicker() {
+  const [date, setDate] = useState(new Date());
+  const { range, onPressDate, reset } = useDateRange();
+
+  return (
+    <Calendar
+      mode="month"
+      date={date}
+      events={[]}
+      selectedRange={range ?? undefined}
+      onChangeDate={setDate}
+      onPressDay={onPressDate}
+    />
+  );
+}
+```
+
+The range's two endpoints get the selected badge; the days between get a
+`rangeBackground` band. `reset()` clears the range, and `setRange` is returned
+for full control.
+
+## Disabled days
+
+`minDate`, `maxDate`, and `isDateDisabled` mark days as unavailable: they render
+dimmed, ignore taps, and can never be selected (even if passed in
+`selectedDates`). The same constraints can be handed to `useDateRange` so a
+rejected day never opens a range.
+
+```tsx
+const minDate = useMemo(() => new Date(), []); // no past dates
+const { range, onPressDate } = useDateRange({ minDate });
+
+<Calendar
+  mode="month"
+  date={date}
+  events={[]}
+  selectedRange={range ?? undefined}
+  minDate={minDate}
+  isDateDisabled={(d) => d.getDay() === 0} // also block Sundays
+  onChangeDate={setDate}
+  onPressDay={onPressDate}
+/>;
+```
+
+<Tip>
+  Selection and constraints flow to day cells through context, so they repaint correctly even on
+  virtualized pages the list has already mounted.
+</Tip>
+
+## Theming the selection
+
+Three theme tokens control the look, defaulted from the "today" colours so
+existing themes need no change:
+
+- `colors.selectedBackground` / `colors.selectedText` — the selected day badge.
+- `colors.rangeBackground` — the band behind in-range days.
+
+See [Theming](/guides/theming) for the full token set.

@@ -1,0 +1,51 @@
+---
+title: Month list
+description: A vertically-scrolling, continuous list of months.
+---
+
+`MonthList` renders months stacked vertically in one continuous, virtualized
+scroll — a month-title separator followed by each month's grid, under a single
+fixed weekday header. It reuses `MonthView` for the grid and the same selection
+context as the month pager, so events, selection, and disabled days all work the
+same way.
+
+```tsx
+import { MonthList } from "react-native-super-calendar";
+
+<MonthList
+  date={new Date()}
+  events={events}
+  weekStartsOn={1}
+  renderEvent={MyEvent}
+  keyExtractor={(event) => event.id}
+  onChangeVisibleMonth={setDate}
+  onPressDay={(day) => console.log(day)}
+/>;
+```
+
+Unlike `<Calendar mode="month">` (which pages horizontally one month per swipe),
+`MonthList` scrolls continuously through months. It's the right fit for a
+date-range or booking UI where you scan several months at once.
+
+## Props
+
+| Prop                   | Type                       | Notes                                               |
+| ---------------------- | -------------------------- | --------------------------------------------------- |
+| `date`                 | `Date`                     | The month scrolled to on mount.                     |
+| `events`               | `CalendarEvent<T>[]`       | Events to render in the grids.                      |
+| `weekStartsOn`         | `0–6`                      | First day of the week.                              |
+| `monthHeight`          | `number`                   | Fixed height per month block (default 360).         |
+| `renderEvent`          | `RenderEvent<T>`           | Required — same renderer as `<Calendar>`.           |
+| `keyExtractor`         | `(event, index) => string` | Required — stable event keys.                       |
+| `selectedDates`        | `Date[]`                   | Selected days (see [Selection](/guides/selection)). |
+| `selectedRange`        | `DateRange`                | Selected span.                                      |
+| `minDate` / `maxDate`  | `Date`                     | Bound the selectable range.                         |
+| `isDateDisabled`       | `(date) => boolean`        | Disable specific days.                              |
+| `onPressDay`           | `(date) => void`           | Tap a day cell.                                     |
+| `onChangeVisibleMonth` | `(month) => void`          | Fires as a month scrolls into view.                 |
+| `renderMonthHeader`    | `(month) => ReactNode`     | Replace the default `LLLL yyyy` title.              |
+
+<Note>
+  `MonthList` requires `renderEvent` and `keyExtractor` (unlike `<Calendar>`,
+  which defaults them). Pass `DefaultEvent` if you just want the built-in box.
+</Note>

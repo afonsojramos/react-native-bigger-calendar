@@ -48,6 +48,19 @@ your editor lists the full set with inline docs.
 | `onPressDay`      | `(date) => void`                         | Tap a month day cell.                         |
 | `onPressMore`     | `(events, date) => void`                 | Tap the `+N more` overflow.                   |
 
+## Selection (month mode)
+
+See the [Date selection](/guides/selection) guide.
+
+| Prop             | Type                | Notes                                           |
+| ---------------- | ------------------- | ----------------------------------------------- |
+| `selectedDate`   | `Date \| null`      | Mark a single day selected.                     |
+| `selectedDates`  | `Date[]`            | Mark several days selected.                     |
+| `selectedRange`  | `DateRange`         | A selected span; pair with `useDateRange`.      |
+| `minDate`        | `Date`              | Earliest selectable day; earlier ones disabled. |
+| `maxDate`        | `Date`              | Latest selectable day; later ones disabled.     |
+| `isDateDisabled` | `(date) => boolean` | Disable specific days (dimmed, taps ignored).   |
+
 ## Display
 
 | Prop                   | Type                   | Notes                           |
@@ -64,17 +77,20 @@ your editor lists the full set with inline docs.
 
 <CardGroup cols={2}>
   <Card title="Components">
-    `Calendar`, `Agenda`, `MonthView`, `MonthPager`, `TimeGrid`, `DefaultEvent`
+    `Calendar`, `Agenda`, `MonthView`, `MonthPager`, `MonthList`, `TimeGrid`, `DefaultEvent`
   </Card>
+  <Card title="Hooks">`useDateRange`, `useMonthGrid`, `useCalendarTheme`</Card>
   <Card title="Theming">
     `defaultTheme`, `darkTheme`, `mergeTheme`, `CalendarThemeProvider`, `useCalendarTheme`
   </Card>
   <Card title="Helpers">
     `expandRecurringEvents`, `eventsInTimeZone`, `toZonedTime`, `layoutDayEvents`, `isAllDayEvent`,
-    `getWeekDays`, `getIsToday`, `isWeekend`, `minutesIntoDay`
+    `buildMonthGrid`, `buildMonthWeeks`, `nextDateRange`, `isDateSelectable`, `isRangeEndpoint`,
+    `isWithinDateRange`, `getWeekDays`, `getIsToday`, `isWeekend`, `minutesIntoDay`
   </Card>
   <Card title="Types">
     `CalendarEvent`, `CalendarMode`, `RenderEventArgs`, `RecurrenceRule`, `BusinessHours`,
-    `EventDragHandler`, `CalendarTheme`, `PositionedEvent`
+    `EventDragHandler`, `CalendarTheme`, `PositionedEvent`, `DateRange`, `MonthGrid`,
+    `MonthListProps`
   </Card>
 </CardGroup>

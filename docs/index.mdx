@@ -1,5 +1,6 @@
 ---
 title: react-native-super-calendar
+sidebarTitle: Overview
 description: A gesture-driven, virtualized calendar for React Native and the web.
 ---
 
@@ -39,6 +40,8 @@ not a fork — the API differs and the internals are new.
 - **Gesture-driven** — pinch-to-zoom the time grid, long-press to drag events,
   drag a grip to resize, and drag empty space to create.
 - **Drag across days**, with optional validation to reject a drop.
+- **Date selection** — single, multiple, or range (with the `useDateRange` hook),
+  disabled days, and a scrolling `MonthList`.
 - **Recurring events**, **time-zone display**, and a **dark theme** preset.
 - **Bring-your-own event type** (`CalendarEvent<T>`) and a `renderEvent` escape
   hatch that works across every mode and event shape.
@@ -54,6 +57,7 @@ not a fork — the API differs and the internals are new.
 | Virtualized, snap-paged views                | ✅                                         | ❌ renders all dates          |
 | Pinch-to-zoom (native) / Ctrl-scroll (web)   | ✅                                         | ❌                            |
 | Drag to move, resize & create                | ✅                                         | ❌ (declined upstream)        |
+| Date selection (single / range / multiple)   | ✅ `useDateRange` + disabled days          | ❌                            |
 | Overlapping events                           | ✅ side-by-side columns                    | ⚠️ stacked / indented         |
 | Recurring events                             | ✅ `expandRecurringEvents`                 | ❌ expand them yourself       |
 | Time-zone display                            | ✅ `eventsInTimeZone`                      | ❌                            |

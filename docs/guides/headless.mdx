@@ -1,0 +1,80 @@
+---
+title: Headless month grid
+description: Build a fully custom calendar with useMonthGrid.
+---
+
+When you want your own day-cell markup but not the date maths, `useMonthGrid`
+gives you the grid as data: the weeks, the weekday headers, and per-day state
+(today, selected, in-range, disabled, current-month). You render whatever you
+like.
+
+```tsx
+import { View, Text, Pressable } from "react-native";
+import { useMonthGrid } from "react-native-super-calendar";
+
+function MyMonth({ month, range }: { month: Date; range?: DateRange }) {
+  const { weeks, weekdays } = useMonthGrid(month, {
+    weekStartsOn: 1,
+    selectedRange: range,
+  });
+
+  return (
+    <View>
+      <View style={{ flexDirection: "row" }}>
+        {weekdays.map((w) => (
+          <Text key={w.label} style={{ flex: 1, textAlign: "center" }}>
+            {w.label}
+          </Text>
+        ))}
+      </View>
+      {weeks.map((week) => (
+        <View key={week.id} style={{ flexDirection: "row" }}>
+          {week.days.map((day) => (
+            <Pressable key={day.id} style={{ flex: 1 }} disabled={day.isDisabled}>
+              <Text
+                style={{
+                  textAlign: "center",
+                  opacity: day.isCurrentMonth ? 1 : 0.4,
+                  fontWeight: day.isToday ? "700" : "400",
+                  color: day.isSelected ? "#fff" : "#000",
+                }}
+              >
+                {day.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      ))}
+    </View>
+  );
+}
+```
+
+## Per-day state
+
+Each `day` in `weeks[].days` carries:
+
+| Field                         | Notes                                              |
+| ----------------------------- | -------------------------------------------------- |
+| `date`                        | The `Date` for the cell.                           |
+| `id`                          | Stable `yyyy-MM-dd` string — handy as a React key. |
+| `label`                       | Day of month, e.g. `"1"`.                          |
+| `isCurrentMonth`              | False for leading/trailing adjacent-month days.    |
+| `isToday`                     | Matches the real today.                            |
+| `isWeekend`                   | Saturday or Sunday.                                |
+| `isDisabled`                  | Fails `minDate`/`maxDate`/`isDateDisabled`.        |
+| `isSelected`                  | A `selectedDates` day or a range endpoint.         |
+| `isRangeStart` / `isRangeEnd` | The range's two endpoints.                         |
+| `isInRange`                   | Inside a complete range (endpoints included).      |
+
+## Options
+
+`useMonthGrid(month, options)` accepts `weekStartsOn`, `showSixWeeks`, `isRTL`,
+`locale`, `selectedDates`, `selectedRange`, and the `minDate` / `maxDate` /
+`isDateDisabled` constraints.
+
+<Tip>
+  Need the grid outside React (tests, server, exports)? Call the pure `buildMonthGrid(month,
+  options)` — `useMonthGrid` is just a memoized wrapper around it. `buildMonthWeeks(month,
+  weekStartsOn)` returns the raw `Date[][]`.
+</Tip>
