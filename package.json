@@ -43,6 +43,7 @@
     "build": "tsdown",
     "typecheck": "tsc --noEmit",
     "test": "jest",
+    "bench": "bun scripts/bench.ts",
     "lint": "oxlint --type-aware src && oxlint --type-aware example",
     "lint:fix": "oxlint --fix --type-aware src && oxlint --fix --type-aware example",
     "format": "oxfmt --check .",
