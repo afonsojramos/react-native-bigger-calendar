@@ -146,6 +146,40 @@ import { MonthList, useDateRange } from "react-native-super-calendar/picker";
 peers, so this entry point won't pull them in. (Metro doesn't tree-shake the main
 barrel, so the subpath is what guarantees the timetable code is left out.)
 
+### React DOM (web without React Native)
+
+For a plain react-dom app (no React Native, no react-native-web), import the
+`react-native-super-calendar/dom` entry point. It ships real DOM components,
+`MonthView`, `MonthList` (the date picker), and `TimeGrid` (day/week/N-day, with
+Ctrl/⌘-scroll and pinch zoom plus drag to move and resize), built on the same
+pure core and Legend List's DOM renderer. A web app installs just:
+
+```sh
+npm install react react-dom @legendapp/list date-fns
+```
+
+```tsx
+import { MonthList, TimeGrid, useDateRange } from "react-native-super-calendar/dom";
+```
+
+The React Native peers (`react-native`, `react-native-gesture-handler`,
+`react-native-reanimated`, `react-native-worklets`) are all optional, so a web
+install pulls none of them. Styling is plain inline styles driven by a `theme`
+prop (`defaultDomTheme` / `darkDomTheme`), no stylesheet import required.
+
+### Headless core (any renderer)
+
+Want the date math and selection model without any of the built-in UI? The
+`react-native-super-calendar/headless` entry point exports just the pure pieces,
+`buildMonthGrid` / `useMonthGrid`, `useDateRange` and the selection helpers,
+`layoutDayEvents`, and the date utilities, with zero React Native, Reanimated, or
+Legend List imports. It's what the DOM components are built on, and it works in
+any React renderer (react-dom, Solid via its React compat, your own).
+
+```tsx
+import { buildMonthGrid, nextDateRange } from "react-native-super-calendar/headless";
+```
+
 ## Usage
 
 ```tsx
