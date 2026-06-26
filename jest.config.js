@@ -24,10 +24,18 @@ module.exports = {
       transform: babelTransform,
     },
     {
+      // react-dom component tests (the /dom renderer) via jsdom.
+      displayName: "dom",
+      testEnvironment: "jsdom",
+      testMatch: ["<rootDir>/src/dom/**/*.test.tsx"],
+      setupFiles: ["<rootDir>/jest.setup.dom.js"],
+      transform: babelTransform,
+    },
+    {
       // Component render tests via react-test-renderer + the React Native preset.
       displayName: "components",
       preset: "@react-native/jest-preset",
-      testMatch: ["<rootDir>/src/**/*.test.tsx"],
+      testMatch: ["<rootDir>/src/components/**/*.test.tsx"],
       setupFiles: ["<rootDir>/jest.setup.components.js"],
       transform: {
         "^.+\\.(js|jsx|ts|tsx)$": [
