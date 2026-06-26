@@ -13,6 +13,14 @@ export type {
 } from "./types";
 export { isAllDayEvent, layoutDayEvents, type PositionedEvent } from "./utils/layout";
 export {
+  eventAccessibilityLabel,
+  eventTimeLabel,
+  isTimeVisibleAtHeight,
+  MIN_BOX_HEIGHT_FOR_TIME,
+  titleEllipsizeMode,
+  titleNumberOfLines,
+} from "./utils/eventDisplay";
+export {
   type DateRange,
   type DateSelectionConstraints,
   type DaySelectionState,
