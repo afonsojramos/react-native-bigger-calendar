@@ -65,22 +65,24 @@ function dayCellStyle(day: MonthGridDay, theme: DomCalendarTheme): CSSProperties
     WebkitTapHighlightColor: "transparent",
   };
   if (day.isWeekend && !day.isInRange) base.background = theme.weekendBackground;
-  // Continuous range band: full fill inside, half-fill on the endpoints so the
-  // badge sits on a clean side.
+  // Continuous range band: the background fills the full width of every day in
+  // the range, endpoints included, so the band runs edge to edge across the row.
   if (day.isInRange) base.background = theme.rangeBackground;
-  if (day.isRangeStart && !day.isRangeEnd) {
-    base.background = `linear-gradient(to right, transparent 50%, ${theme.rangeBackground} 50%)`;
-  }
-  if (day.isRangeEnd && !day.isRangeStart) {
-    base.background = `linear-gradient(to left, transparent 50%, ${theme.rangeBackground} 50%)`;
-  }
+  // A single-day selection (start === end) is just the badge, no band.
   if (day.isRangeStart && day.isRangeEnd) base.background = "transparent";
   return base;
 }
 
-function badgeStyle(day: MonthGridDay, theme: DomCalendarTheme): CSSProperties {
+function badgeStyle(day: MonthGridDay, theme: DomCalendarTheme, hovered: boolean): CSSProperties {
   const filled =
     day.isToday || day.isRangeStart || day.isRangeEnd || (day.isSelected && !day.isInRange);
+  const background = filled
+    ? day.isToday
+      ? theme.todayBackground
+      : theme.selectedBackground
+    : hovered
+      ? theme.hoverBackground
+      : "transparent";
   return {
     width: theme.dayBadgeSize,
     height: theme.dayBadgeSize,
@@ -88,11 +90,7 @@ function badgeStyle(day: MonthGridDay, theme: DomCalendarTheme): CSSProperties {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: filled
-      ? day.isToday
-        ? theme.todayBackground
-        : theme.selectedBackground
-      : "transparent",
+    background,
     color: filled ? (day.isToday ? theme.todayText : theme.selectedText) : "inherit",
   };
 }
@@ -147,6 +145,7 @@ export function MonthView({
   const monthKey = format(date, "yyyy-MM");
   useEffect(() => setFocusedDate(initialFocusRef.current), [monthKey]);
 
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const focusKey = format(focusedDate, "yyyy-MM-dd");
   const onKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -234,8 +233,10 @@ export function MonthView({
                   aria-pressed={day.isSelected || day.isInRange}
                   style={dayCellStyle(day, theme)}
                   onClick={day.isDisabled ? undefined : () => onPressDay?.(day.date)}
+                  onMouseEnter={day.isDisabled ? undefined : () => setHoveredKey(day.id)}
+                  onMouseLeave={() => setHoveredKey((k) => (k === day.id ? null : k))}
                 >
-                  <span style={badgeStyle(day, theme)}>{day.label}</span>
+                  <span style={badgeStyle(day, theme, hoveredKey === day.id)}>{day.label}</span>
                 </button>
               );
             })}

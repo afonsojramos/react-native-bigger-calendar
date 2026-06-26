@@ -24,6 +24,8 @@ export interface DomCalendarTheme {
   selectedText: string;
   /** Continuous band behind a selected range. */
   rangeBackground: string;
+  /** Hover highlight behind a day number (mouse only). */
+  hoverBackground: string;
   /** Current-time indicator line on the time grid. */
   nowIndicator: string;
   /** Default event chip fill on the time grid. */
@@ -52,6 +54,7 @@ export const defaultDomTheme: DomCalendarTheme = {
   selectedBackground: "#1F6FEB",
   selectedText: "#FFFFFF",
   rangeBackground: "#DCE7FF",
+  hoverBackground: "#E6ECF5",
   nowIndicator: "#E5484D",
   eventBackground: "#DCE7FF",
   eventText: "#1A1B1E",
@@ -71,6 +74,7 @@ export const darkDomTheme: DomCalendarTheme = {
   selectedBackground: "#3B82F6",
   selectedText: "#FFFFFF",
   rangeBackground: "#1E3A66",
+  hoverBackground: "#2E3138",
   nowIndicator: "#F2555A",
   eventBackground: "#243B61",
   eventText: "#E6E8EB",
