@@ -19,8 +19,10 @@ Pass a `Partial<CalendarTheme>` — anything you omit falls back to `defaultThem
 
 See `CalendarTheme` for the full set of color, text, and metric tokens.
 
-The date selection in [`MonthList`](/guides/month-list) is a background band over
-the span; set its colour with the `rangeBackground` token.
+The date selection in [`MonthList`](/guides/month-list) draws filled endpoint
+badges (`selectedBackground` / `selectedText`) and a rounded band across the span
+(`rangeBackground`, height `rangeBandHeight`). Pass `fillCellOnSelection` to fill
+the whole cell instead of the pill.
 
 ### Dark mode
 

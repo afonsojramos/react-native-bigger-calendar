@@ -4,9 +4,9 @@ description: Single, multiple, and range date selection with drag and disabled d
 ---
 
 Date picking lives on [`MonthList`](/guides/month-list), the vertically-scrolling
-month list. It takes the selection props and renders the selection as a
-background band across the span (no per-day circle), so it stays distinct from
-the "today" badge.
+month list. It takes the selection props and renders a range as filled endpoint
+badges with a centered rounded "pill" band across the span; today keeps its own
+badge. Pass `fillCellOnSelection` to fill the whole cell instead of the pill.
 
 ## Range selection with useDateRange
 

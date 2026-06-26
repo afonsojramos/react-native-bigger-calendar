@@ -361,9 +361,10 @@ duration and fields; non-recurring events pass through unchanged.
 ### Date selection
 
 Date picking lives on `MonthList`, the vertically-scrolling month list (the
-horizontally-paged `month` view is for browsing events, not picking). The
-selection renders as a background band across the span, with no per-day circle,
-so it stays distinct from the "today" badge. For ranges, the `useDateRange` hook
+horizontally-paged `month` view is for browsing events, not picking). A range's
+endpoints get a filled badge (the `selectedBackground` token) and the span gets
+a centered rounded "pill" band behind it; today keeps its own badge. For ranges,
+the `useDateRange` hook
 owns the state machine: the first press sets the start, the second sets the end
 (auto-swapping if earlier), a third press starts over. Tap two days, or
 long-press and drag to sweep a range (the list auto-scrolls at the edges, so a
@@ -389,8 +390,10 @@ function RangePicker() {
 }
 ```
 
-Use `selectedDates` to mark discrete days instead of a range. The band colour is
-the `rangeBackground` theme token.
+Use `selectedDates` to mark discrete days instead of a range. The band's colour
+and height are the `rangeBackground` / `rangeBandHeight` theme tokens; pass
+`fillCellOnSelection` to `MonthList` to fill the whole cell edge to edge instead
+of the pill.
 
 **Disabled days.** `minDate`, `maxDate` and `isDateDisabled` render days dimmed,
 ignore taps, and keep them out of any selection (drag included). Hand the same
