@@ -11,12 +11,17 @@ import {
 import {
   type CalendarEvent,
   type CalendarMode,
+  eventAccessibilityLabel,
+  eventTimeLabel,
   getIsToday,
   getViewDays,
   isAllDayEvent,
   isSameCalendarDay,
+  isTimeVisibleAtHeight,
   layoutDayEvents,
   type TimeGridMode,
+  titleEllipsizeMode,
+  titleNumberOfLines,
   type WeekStartsOn,
 } from "../headless";
 import { type DomCalendarTheme, mergeDomTheme } from "./theme";
@@ -33,6 +38,8 @@ export interface DomRenderEventArgs<T = unknown> {
   boxHeight?: number;
   continuesBefore?: boolean;
   continuesAfter?: boolean;
+  /** Show the time range in 12-hour AM/PM. */
+  ampm?: boolean;
   onPress: () => void;
 }
 
@@ -55,6 +62,8 @@ export interface TimeGridProps<T = unknown> {
   maxHourHeight?: number;
   /** Snap dragged events to this many minutes (default 15). */
   snapMinutes?: number;
+  /** Render event time ranges in 12-hour AM/PM (default false, 24h). */
+  ampm?: boolean;
   locale?: Locale;
   theme?: Partial<DomCalendarTheme>;
   height?: number | string;
@@ -77,9 +86,25 @@ type DragState = {
 
 function DefaultDomEvent<T>({
   event,
+  mode,
   isAllDay,
+  boxHeight,
+  ampm = false,
   theme,
 }: DomRenderEventArgs<T> & { theme: DomCalendarTheme }) {
+  // Progressive disclosure, mirroring the RN renderer: drop the time line when
+  // the box is too short for it, so a 30-minute slot shows just its title
+  // instead of clipping both lines.
+  const timeLabel = eventTimeLabel({
+    mode,
+    isAllDay,
+    start: event.start,
+    end: event.end,
+    ampm,
+    showTime: true,
+  });
+  const showTime = !isAllDay && timeLabel != null && isTimeVisibleAtHeight(boxHeight, mode);
+  const oneLine = titleNumberOfLines(mode, isAllDay) === 1;
   return (
     <div
       style={{
@@ -97,18 +122,18 @@ function DefaultDomEvent<T>({
       <div
         style={{
           fontWeight: 600,
-          whiteSpace: "nowrap",
-          textOverflow: "ellipsis",
           overflow: "hidden",
+          ...(oneLine
+            ? {
+                whiteSpace: "nowrap",
+                textOverflow: titleEllipsizeMode(true) === "tail" ? "ellipsis" : "clip",
+              }
+            : { wordBreak: "break-word" }),
         }}
       >
         {event.title}
       </div>
-      {!isAllDay ? (
-        <div style={{ opacity: 0.75 }}>
-          {format(event.start, "HH:mm")}–{format(event.end, "HH:mm")}
-        </div>
-      ) : null}
+      {showTime ? <div style={{ opacity: 0.75 }}>{timeLabel}</div> : null}
     </div>
   );
 }
@@ -131,6 +156,7 @@ export function TimeGrid<T = unknown>({
   minHourHeight = 24,
   maxHourHeight = 160,
   snapMinutes = 15,
+  ampm = false,
   locale,
   theme: themeOverrides,
   height = 600,
@@ -307,6 +333,8 @@ export function TimeGrid<T = unknown>({
             <button
               key={day.toISOString()}
               type="button"
+              tabIndex={onPressDayHeader ? 0 : -1}
+              aria-hidden={onPressDayHeader ? undefined : true}
               onClick={onPressDayHeader ? () => onPressDayHeader(day) : undefined}
               style={{
                 flex: 1,
@@ -369,6 +397,7 @@ export function TimeGrid<T = unknown>({
                   event,
                   mode,
                   isAllDay: true,
+                  ampm,
                   onPress: () => onPressEvent?.(event),
                 };
                 return (
@@ -463,12 +492,28 @@ export function TimeGrid<T = unknown>({
                     boxHeight,
                     continuesBefore: pe.continuesBefore,
                     continuesAfter: pe.continuesAfter,
+                    ampm,
                     onPress,
                   };
                   const draggable = !!onDragEvent;
                   return (
                     <div
                       key={idx}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={eventAccessibilityLabel({
+                        title: pe.event.title,
+                        isAllDay: false,
+                        start: pe.event.start,
+                        end: pe.event.end,
+                        ampm,
+                      })}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          onPress();
+                        }
+                      }}
                       onPointerDown={
                         draggable
                           ? (e) => beginDrag(e, key, "move", pe.startHours, pe.durationHours)
