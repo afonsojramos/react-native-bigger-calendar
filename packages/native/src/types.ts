@@ -6,6 +6,7 @@ import type { CalendarEvent, CalendarMode } from "@super-calendar/core";
 // Re-export the renderer-agnostic types from core so native modules can keep
 // importing them from "../types".
 export type {
+  BusinessHours,
   CalendarEvent,
   CalendarMode,
   EventKeyExtractor,

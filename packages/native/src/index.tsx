@@ -6,7 +6,6 @@ export { MonthList, type MonthListProps } from "./components/MonthList";
 export {
   TimeGrid,
   type TimeGridProps,
-  type BusinessHours,
   type EventDragHandler,
   type EventDragStartHandler,
   type HourRenderer,
@@ -24,6 +23,7 @@ export {
   useCalendarTheme,
 } from "./theme";
 export type {
+  BusinessHours,
   CalendarEvent,
   CalendarMode,
   EventKeyExtractor,

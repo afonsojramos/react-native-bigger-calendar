@@ -41,6 +41,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useCalendarTheme } from "../theme";
 import type {
+  BusinessHours,
   CalendarEvent,
   CalendarMode,
   EventKeyExtractor,
@@ -55,7 +56,12 @@ import {
   isWeekend,
   viewDayCount,
 } from "@super-calendar/core";
-import { cellRangeFromDrag, resolveDraggedBounds, snapDeltaMinutes } from "@super-calendar/core";
+import {
+  cellRangeFromDrag,
+  closedHourBands,
+  resolveDraggedBounds,
+  snapDeltaMinutes,
+} from "@super-calendar/core";
 import { layoutDayEvents, type PositionedEvent } from "@super-calendar/core";
 import { useWebGridZoom } from "../utils/useWebGridZoom";
 import { useWebPagerKeys } from "../utils/useWebPagerKeys";
@@ -494,12 +500,6 @@ const NowIndicator = ({ cellHeight, nowHours, minHour, left, width, color }: Now
   );
 };
 
-/**
- * A day's open hours for `businessHours` shading: `{ start, end }` in hours
- * (fractions allowed, e.g. 9.5), or `null` when the day is closed (fully shaded).
- */
-export type BusinessHours = (date: Date) => { start: number; end: number } | null;
-
 type ShadeBandProps = {
   cellHeight: SharedValue<number>;
   startHour: number;
@@ -660,21 +660,6 @@ function TimetablePageInner<T>({
   const dayLeft = (dayIndex: number) => hourColumnWidth + dayIndex * dayWidth;
 
   const dayLayouts = useMemo(() => days.map((day) => layoutDayEvents(events, day)), [days, events]);
-
-  // The closed hour-ranges of a day (to shade) given `businessHours`: the spans
-  // before open and after close, clamped to the visible window — or the whole
-  // window when the day is closed (`null`).
-  const closedHourBands = (day: Date): { start: number; end: number }[] => {
-    const open = businessHours?.(day);
-    if (open === undefined) return [];
-    if (open === null) return [{ start: minHour, end: maxHour }];
-    const openStart = Math.max(minHour, Math.min(maxHour, open.start));
-    const openEnd = Math.max(minHour, Math.min(maxHour, open.end));
-    const bands: { start: number; end: number }[] = [];
-    if (openStart > minHour) bands.push({ start: minHour, end: openStart });
-    if (openEnd < maxHour) bands.push({ start: openEnd, end: maxHour });
-    return bands;
-  };
 
   // Map a tap on empty grid space back to the date+time it represents. Reads the
   // live row height on the JS thread to convert the touch Y into minutes.
@@ -968,7 +953,7 @@ function TimetablePageInner<T>({
 
             {businessHours
               ? days.flatMap((day, dayIndex) =>
-                  closedHourBands(day).map((band, bandIndex) => (
+                  closedHourBands(day, businessHours, minHour, maxHour).map((band, bandIndex) => (
                     <ShadeBand
                       key={`closed-${day.toISOString()}-${bandIndex}`}
                       cellHeight={heightSource}

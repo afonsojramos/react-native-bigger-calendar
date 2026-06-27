@@ -12,6 +12,7 @@ import type { StyleProp, ViewStyle } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import { CalendarThemeProvider, mergeTheme, type PartialCalendarTheme } from "../theme";
 import type {
+  BusinessHours,
   CalendarEvent,
   CalendarMode,
   EventKeyExtractor,
@@ -24,7 +25,6 @@ import { Agenda } from "./Agenda";
 import { DefaultEvent } from "./DefaultEvent";
 import { MonthPager } from "./MonthPager";
 import {
-  type BusinessHours,
   DEFAULT_HOUR_HEIGHT,
   type EventDragHandler,
   type EventDragStartHandler,

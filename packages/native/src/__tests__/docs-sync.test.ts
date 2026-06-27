@@ -119,17 +119,26 @@ describe("docs stay in sync with the type surface", () => {
       codeBlocks(read(file), ["tsx", "ts"]).forEach((code, i) => {
         const sf = parser.createSourceFile(`${rel}.${i}.tsx`, code, { overwrite: true });
 
+        // Components a sample imports from another package (e.g. the react-dom
+        // renderer's `TimeGrid`/`MonthList`) share names with native ones but
+        // have their own props, so they must not be checked against native types.
+        const importedElsewhere = new Set<string>();
         for (const imp of sf.getImportDeclarations()) {
-          if (imp.getModuleSpecifierValue() !== PACKAGE) continue;
-          for (const named of imp.getNamedImports()) {
-            const name = named.getName();
-            if (!allExports.has(name)) importViolations.push(`${rel}: import { ${name} }`);
+          if (imp.getModuleSpecifierValue() === PACKAGE) {
+            for (const named of imp.getNamedImports()) {
+              const name = named.getName();
+              if (!allExports.has(name)) importViolations.push(`${rel}: import { ${name} }`);
+            }
+          } else {
+            for (const named of imp.getNamedImports()) importedElsewhere.add(named.getName());
           }
         }
 
         for (const node of sf.getDescendants()) {
           if (!Node.isJsxOpeningElement(node) && !Node.isJsxSelfClosingElement(node)) continue;
-          const props = componentProps.get(node.getTagNameNode().getText());
+          const tag = node.getTagNameNode().getText();
+          if (importedElsewhere.has(tag)) continue;
+          const props = componentProps.get(tag);
           if (!props) continue;
           for (const attr of node.getAttributes()) {
             if (!Node.isJsxAttribute(attr)) continue; // skip {...spread}
