@@ -5,6 +5,7 @@
 export { MonthView, type MonthViewProps } from "./MonthView";
 export { MonthList, type MonthListProps } from "./MonthList";
 export {
+  type BusinessHours,
   TimeGrid,
   type TimeGridProps,
   type DomRenderEvent,

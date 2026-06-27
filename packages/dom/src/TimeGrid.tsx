@@ -11,6 +11,7 @@ import {
 import {
   type CalendarEvent,
   type CalendarMode,
+  cellRangeFromDrag,
   eventAccessibilityLabel,
   eventTimeLabel,
   getIsToday,
@@ -29,6 +30,26 @@ import { type DomCalendarTheme, mergeDomTheme } from "./theme";
 const HOURS = Array.from({ length: 24 }, (_, h) => h);
 const GUTTER_WIDTH = 56;
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+
+/**
+ * A day's open hours for `businessHours` shading: `{ start, end }` in hours
+ * (fractions allowed, e.g. 9.5), or `null` when the day is closed (fully shaded).
+ * Mirrors the React Native renderer's type.
+ */
+export type BusinessHours = (date: Date) => { start: number; end: number } | null;
+
+// The closed hour-spans of a day (to shade), given the businessHours callback.
+function closedBands(day: Date, businessHours?: BusinessHours): { start: number; end: number }[] {
+  const open = businessHours?.(day);
+  if (open === undefined) return [];
+  if (open === null) return [{ start: 0, end: 24 }];
+  const start = clamp(open.start, 0, 24);
+  const end = clamp(open.end, 0, 24);
+  const bands: { start: number; end: number }[] = [];
+  if (start > 0) bands.push({ start: 0, end: start });
+  if (end < 24) bands.push({ start: end, end: 24 });
+  return bands;
+}
 
 /** Props passed to a custom time-grid event renderer. */
 export interface DomRenderEventArgs<T = unknown> {
@@ -64,14 +85,31 @@ export interface TimeGridProps<T = unknown> {
   dragStepMinutes?: number;
   /** Render event time ranges in 12-hour AM/PM (default false, 24h). */
   ampm?: boolean;
+  /** Sub-divisions per hour for the grid lines, e.g. 2 for half-hour (default 1). */
+  timeslots?: number;
+  /** Shade the hours outside business hours; `null` shades the whole day. */
+  businessHours?: BusinessHours;
+  /** Show the current-time indicator on today's column (default true). */
+  showNowIndicator?: boolean;
+  /** Show the all-day lane above the grid (default true). */
+  showAllDayEventCell?: boolean;
   locale?: Locale;
   theme?: Partial<DomCalendarTheme>;
   height?: number | string;
   renderEvent?: DomRenderEvent<T>;
   onPressEvent?: (event: CalendarEvent<T>) => void;
   onPressDateHeader?: (day: Date) => void;
-  /** Enables drag-to-move and resize; called with the proposed new start/end. */
-  onDragEvent?: (event: CalendarEvent<T>, start: Date, end: Date) => void;
+  /** Tap empty grid space; called with the date and time at the press. */
+  onPressCell?: (date: Date) => void;
+  /** Drag empty grid space to create; called with the swept start/end. */
+  onCreateEvent?: (start: Date, end: Date) => void;
+  /** Fires when an event drag begins (e.g. to trigger haptics). */
+  onDragStart?: (event: CalendarEvent<T>) => void;
+  /**
+   * Enables drag-to-move and resize; called with the proposed new start/end.
+   * Return `false` to reject the drop (the event snaps back).
+   */
+  onDragEvent?: (event: CalendarEvent<T>, start: Date, end: Date) => void | boolean;
   className?: string;
   style?: CSSProperties;
 }
@@ -157,12 +195,19 @@ export function TimeGrid<T = unknown>({
   maxHourHeight = 160,
   dragStepMinutes = 15,
   ampm = false,
+  timeslots = 1,
+  businessHours,
+  showNowIndicator = true,
+  showAllDayEventCell = true,
   locale,
   theme: themeOverrides,
   height = 600,
   renderEvent,
   onPressEvent,
   onPressDateHeader,
+  onPressCell,
+  onCreateEvent,
+  onDragStart,
   onDragEvent,
   className,
   style,
@@ -188,6 +233,16 @@ export function TimeGrid<T = unknown>({
     dragRef.current = next;
     setDrag(next);
   };
+
+  // Create-by-drag / tap on empty grid space. Mouse and pen sweep out a new
+  // event; on touch the column scrolls instead, so a tap still hits onPressCell.
+  const [createBox, setCreateBox] = useState<{
+    dayIndex: number;
+    topPx: number;
+    heightPx: number;
+  } | null>(null);
+  const createOrigin = useRef<{ el: HTMLElement; dayIndex: number; startPx: number } | null>(null);
+  const cellEnabled = !!onPressCell || !!onCreateEvent;
 
   const days = useMemo(
     () => getViewDays(mode, date, weekStartsOn, numberOfDays),
@@ -251,6 +306,7 @@ export function TimeGrid<T = unknown>({
 
   const beginDrag = (
     e: ReactPointerEvent,
+    event: CalendarEvent<T>,
     key: string,
     kind: "move" | "resize",
     startHours: number,
@@ -265,6 +321,7 @@ export function TimeGrid<T = unknown>({
     }
     dragOrigin.current = { pointerY: e.clientY, startHours, durationHours };
     applyDrag({ key, kind, startHours, durationHours, moved: false });
+    onDragStart?.(event);
   };
   const moveDrag = (e: ReactPointerEvent) => {
     const d = dragRef.current;
@@ -312,6 +369,61 @@ export function TimeGrid<T = unknown>({
     applyDrag(null);
     dragOrigin.current = null;
   };
+
+  const pxFromTop = (el: HTMLElement, clientY: number) => clientY - el.getBoundingClientRect().top;
+  const beginCreate = (e: ReactPointerEvent, dayIndex: number) => {
+    // Mouse / pen only: on touch the column must stay free to scroll the grid.
+    // Only from the column background, primary button, never on an event.
+    if (!cellEnabled || e.pointerType === "touch") return;
+    if (e.target !== e.currentTarget || e.button > 0) return;
+    const el = e.currentTarget as HTMLElement;
+    const startPx = pxFromTop(el, e.clientY);
+    try {
+      el.setPointerCapture?.(e.pointerId);
+    } catch {
+      // Best-effort capture.
+    }
+    createOrigin.current = { el, dayIndex, startPx };
+    setCreateBox({ dayIndex, topPx: startPx, heightPx: 0 });
+  };
+  const moveCreate = (e: ReactPointerEvent) => {
+    const o = createOrigin.current;
+    if (!o) return;
+    const cur = pxFromTop(o.el, e.clientY);
+    setCreateBox({
+      dayIndex: o.dayIndex,
+      topPx: Math.min(o.startPx, cur),
+      heightPx: Math.abs(cur - o.startPx),
+    });
+  };
+  const endCreate = (e: ReactPointerEvent) => {
+    const o = createOrigin.current;
+    if (!o) return;
+    try {
+      o.el.releasePointerCapture?.(e.pointerId);
+    } catch {
+      // Best-effort release.
+    }
+    const endPx = pxFromTop(o.el, e.clientY);
+    const day = days[o.dayIndex];
+    const moved = Math.abs(endPx - o.startPx) > 4;
+    if (moved && onCreateEvent) {
+      const range = cellRangeFromDrag(day, o.startPx, endPx, hourHeight, 0, dragStepMinutes);
+      if (range) onCreateEvent(range.start, range.end);
+    } else if (onPressCell) {
+      const at = cellRangeFromDrag(day, o.startPx, o.startPx, hourHeight, 0, dragStepMinutes);
+      if (at) onPressCell(at.start);
+    }
+    createOrigin.current = null;
+    setCreateBox(null);
+  };
+
+  const hourLines = `repeating-linear-gradient(to bottom, transparent 0, transparent ${hourHeight - 1}px, ${theme.gridLine} ${hourHeight - 1}px, ${theme.gridLine} ${hourHeight}px)`;
+  const slotHeight = hourHeight / Math.max(1, timeslots);
+  const gridLines =
+    timeslots > 1
+      ? `${hourLines}, repeating-linear-gradient(to bottom, transparent 0, transparent ${slotHeight - 1}px, ${theme.gridLine}80 ${slotHeight - 1}px, ${theme.gridLine}80 ${slotHeight}px)`
+      : hourLines;
 
   return (
     <div
@@ -373,7 +485,7 @@ export function TimeGrid<T = unknown>({
       </div>
 
       {/* All-day lane */}
-      {hasAllDay ? (
+      {showAllDayEventCell && hasAllDay ? (
         <div style={{ display: "flex", borderBottom: `1px solid ${theme.gridLine}` }}>
           <div
             style={{
@@ -463,19 +575,53 @@ export function TimeGrid<T = unknown>({
           {/* Day columns */}
           {days.map((day, dayIndex) => {
             const positioned = layoutDayEvents(events, day);
-            const showNow = isSameCalendarDay(day, new Date());
+            const showNow = showNowIndicator && isSameCalendarDay(day, new Date());
             const nowDate = new Date();
             const nowTop = ((nowDate.getHours() * 60 + nowDate.getMinutes()) / 60) * hourHeight;
+            const bands = closedBands(day, businessHours);
+            const ghost = createBox?.dayIndex === dayIndex ? createBox : null;
             return (
               <div
                 key={day.toISOString()}
+                onPointerDown={cellEnabled ? (e) => beginCreate(e, dayIndex) : undefined}
+                onPointerMove={cellEnabled ? moveCreate : undefined}
+                onPointerUp={cellEnabled ? endCreate : undefined}
+                onPointerCancel={cellEnabled ? endCreate : undefined}
                 style={{
                   flex: 1,
                   position: "relative",
                   borderLeft: `1px solid ${theme.gridLine}`,
-                  backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent ${hourHeight - 1}px, ${theme.gridLine} ${hourHeight - 1}px, ${theme.gridLine} ${hourHeight}px)`,
+                  cursor: cellEnabled ? "crosshair" : "default",
                 }}
               >
+                {/* Business-hours shade, behind the grid lines and events. */}
+                {bands.map((b) => (
+                  <div
+                    key={b.start}
+                    aria-hidden
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      right: 0,
+                      top: b.start * hourHeight,
+                      height: (b.end - b.start) * hourHeight,
+                      background: theme.outsideHoursBackground,
+                      pointerEvents: "none",
+                      zIndex: 0,
+                    }}
+                  />
+                ))}
+                {/* Grid lines, painted over the shade so they stay visible. */}
+                <div
+                  aria-hidden
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    pointerEvents: "none",
+                    zIndex: 0,
+                    backgroundImage: gridLines,
+                  }}
+                />
                 {positioned.map((pe, idx) => {
                   const key = `${dayIndex}:${idx}`;
                   const active = drag?.key === key ? drag : null;
@@ -516,7 +662,8 @@ export function TimeGrid<T = unknown>({
                       }}
                       onPointerDown={
                         draggable
-                          ? (e) => beginDrag(e, key, "move", pe.startHours, pe.durationHours)
+                          ? (e) =>
+                              beginDrag(e, pe.event, key, "move", pe.startHours, pe.durationHours)
                           : undefined
                       }
                       onPointerMove={draggable ? moveDrag : undefined}
@@ -544,7 +691,7 @@ export function TimeGrid<T = unknown>({
                       {draggable ? (
                         <div
                           onPointerDown={(e) =>
-                            beginDrag(e, key, "resize", pe.startHours, pe.durationHours)
+                            beginDrag(e, pe.event, key, "resize", pe.startHours, pe.durationHours)
                           }
                           style={{
                             position: "absolute",
@@ -584,6 +731,24 @@ export function TimeGrid<T = unknown>({
                       }}
                     />
                   </div>
+                ) : null}
+                {ghost ? (
+                  <div
+                    aria-hidden
+                    style={{
+                      position: "absolute",
+                      left: 1,
+                      right: 1,
+                      top: ghost.topPx,
+                      height: Math.max(ghost.heightPx, 2),
+                      background: theme.rangeBackground,
+                      border: `1px solid ${theme.selectedBackground}`,
+                      borderRadius: 6,
+                      opacity: 0.7,
+                      pointerEvents: "none",
+                      zIndex: 2,
+                    }}
+                  />
                 ) : null}
               </div>
             );
