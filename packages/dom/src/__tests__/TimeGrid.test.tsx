@@ -152,6 +152,24 @@ describe("dom TimeGrid", () => {
     expect((onPressCell.mock.calls[0][0] as Date).getHours()).toBe(8);
   });
 
+  it("fires onCreateEvent from the keyboard when only onCreateEvent is set", () => {
+    const onCreateEvent = jest.fn();
+    const { container } = render(
+      <TimeGrid
+        date={day}
+        mode="day"
+        hourHeight={48}
+        dragStepMinutes={15}
+        onCreateEvent={onCreateEvent}
+      />,
+    );
+    fireEvent.keyDown(dayColumn(container), { key: "Enter" });
+    expect(onCreateEvent).toHaveBeenCalledTimes(1);
+    const [start, end] = onCreateEvent.mock.calls[0] as [Date, Date];
+    // A point activation creates a one-step event.
+    expect(end.getTime() - start.getTime()).toBe(15 * 60 * 1000);
+  });
+
   it("hides the all-day lane when showAllDayEventCell is false", () => {
     const allDay: CalendarEvent[] = [
       { title: "Holiday", start: new Date(2026, 5, 26), end: new Date(2026, 5, 27), allDay: true },

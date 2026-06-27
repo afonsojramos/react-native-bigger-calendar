@@ -56,11 +56,6 @@ export interface MonthViewProps<T = unknown> extends DateSelectionConstraints {
    * the compact date-picker look.
    */
   events?: CalendarEvent<T>[];
-  /**
-   * @internal Prebuilt day→events index (from `groupEventsByDay`). `MonthList`
-   * passes this so the map is built once for the whole list, not per month.
-   */
-  eventsByDay?: ReadonlyMap<string, CalendarEvent<T>[]>;
   /** Custom chip renderer; falls back to the built-in titled chip. */
   renderEvent?: DomMonthEvent<T>;
   /** Max chips shown per day before a "+N more" row (default 3). */
@@ -266,6 +261,13 @@ function moreButtonStyle(theme: DomCalendarTheme): CSSProperties {
   };
 }
 
+// Internal-only: MonthList passes a day→events index built once for the whole
+// list (via `groupEventsByDay`) so each month doesn't rebuild it. Not exported,
+// so it stays off the public MonthViewProps surface.
+interface MonthViewInternalProps<T = unknown> extends MonthViewProps<T> {
+  eventsByDay?: ReadonlyMap<string, CalendarEvent<T>[]>;
+}
+
 /** A single static month grid, rendered with plain DOM elements. */
 export function MonthView<T = unknown>({
   date,
@@ -291,7 +293,7 @@ export function MonthView<T = unknown>({
   onPressDay,
   className,
   style,
-}: MonthViewProps<T>) {
+}: MonthViewInternalProps<T>) {
   const theme = useMemo(() => mergeDomTheme(themeOverrides), [themeOverrides]);
 
   // Calendar layout (date in the corner + event chips) is on whenever `events`

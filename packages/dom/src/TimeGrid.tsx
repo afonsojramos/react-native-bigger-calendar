@@ -419,12 +419,13 @@ export function TimeGrid<T = unknown>({
     setCreateBox(null);
   };
   // Keyboard equivalent of tapping/sweeping the grid: a focusable column fires
-  // this on Enter/Space at the first visible time, so create/press-cell don't
-  // require a pointer.
+  // this on Enter/Space at the currently visible top of the grid, so
+  // create/press-cell don't require a pointer.
   const activateCell = (day: Date) => {
+    const visibleMinutes = ((scrollRef.current?.scrollTop ?? 0) / hourHeightRef.current) * 60;
     const at = addMinutes(
       startOfDay(day),
-      Math.round(scrollOffsetMinutes / dragStepMinutes) * dragStepMinutes,
+      Math.round(visibleMinutes / dragStepMinutes) * dragStepMinutes,
     );
     if (onPressCell) onPressCell(at);
     else if (onCreateEvent) onCreateEvent(at, addMinutes(at, dragStepMinutes));
@@ -437,6 +438,8 @@ export function TimeGrid<T = unknown>({
     () => days.map((day) => layoutDayEvents(events, day)),
     [days, events],
   );
+  // The dom grid always renders a full 0–24 window (no minHour/maxHour props), so
+  // closedHourBands uses its 0/24 defaults.
   const bandsByDay = useMemo(
     () => days.map((day) => closedHourBands(day, businessHours)),
     [days, businessHours],
@@ -522,52 +525,58 @@ export function TimeGrid<T = unknown>({
           >
             all-day
           </div>
-          {allDayByDay.map((list, i) => (
-            <div
-              key={days[i].toISOString()}
-              style={{ flex: 1, padding: 2, display: "flex", flexDirection: "column", gap: 2 }}
-            >
-              {list.map((event) => {
-                const args: DomRenderEventArgs<T> = {
-                  event,
-                  mode,
-                  isAllDay: true,
-                  continuesBefore: false,
-                  continuesAfter: false,
-                  ampm,
-                  onPress: () => onPressEvent?.(event),
-                };
-                return (
-                  <button
-                    key={`${event.start.toISOString()}:${event.title}`}
-                    type="button"
-                    onClick={() => onPressEvent?.(event)}
-                    aria-label={eventAccessibilityLabel({
-                      title: event.title,
-                      isAllDay: true,
-                      start: event.start,
-                      end: event.end,
-                      ampm,
-                    })}
-                    style={{
-                      border: "none",
-                      padding: 0,
-                      background: "transparent",
-                      cursor: "pointer",
-                      textAlign: "left",
-                      height: 22,
-                    }}
-                  >
-                    {Renderer ? (
-                      <Renderer {...args} />
-                    ) : (
-                      <DefaultDomEvent {...args} theme={theme} />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
+          {allDayByDay.map((list, i) => {
+            const dayStart = startOfDay(days[i]);
+            const dayEnd = addDays(dayStart, 1);
+            return (
+              <div
+                key={days[i].toISOString()}
+                style={{ flex: 1, padding: 2, display: "flex", flexDirection: "column", gap: 2 }}
+              >
+                {list.map((event) => {
+                  const args: DomRenderEventArgs<T> = {
+                    event,
+                    mode,
+                    isAllDay: true,
+                    // Whether this all-day event continues into the previous/next
+                    // column, so custom renderers can draw continuation affordances.
+                    continuesBefore: event.start < dayStart,
+                    continuesAfter: event.end > dayEnd,
+                    ampm,
+                    onPress: () => onPressEvent?.(event),
+                  };
+                  return (
+                    <button
+                      key={`${event.start.toISOString()}:${event.title}`}
+                      type="button"
+                      onClick={() => onPressEvent?.(event)}
+                      aria-label={eventAccessibilityLabel({
+                        title: event.title,
+                        isAllDay: true,
+                        start: event.start,
+                        end: event.end,
+                        ampm,
+                      })}
+                      style={{
+                        border: "none",
+                        padding: 0,
+                        background: "transparent",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        height: 22,
+                      }}
+                    >
+                      {Renderer ? (
+                        <Renderer {...args} />
+                      ) : (
+                        <DefaultDomEvent {...args} theme={theme} />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
       ) : null}
 

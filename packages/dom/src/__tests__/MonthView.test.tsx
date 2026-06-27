@@ -1,5 +1,5 @@
 import { fireEvent, render } from "@testing-library/react";
-import type { CalendarEvent } from "@super-calendar/core";
+import { type CalendarEvent, groupEventsByDay } from "@super-calendar/core";
 import { MonthView } from "../MonthView";
 
 describe("dom MonthView", () => {
@@ -152,6 +152,16 @@ describe("dom MonthView", () => {
       );
       expect(getByText("First")).toBeTruthy();
       expect(getByText("1 More")).toBeTruthy();
+    });
+
+    it("renders chips from a prebuilt eventsByDay map (the internal MonthList path)", () => {
+      // MonthList builds the index once and passes it; the lookup key must match.
+      const map = groupEventsByDay(events);
+      const { getByText } = render(
+        <MonthView date={new Date(2026, 6, 1)} weekStartsOn={1} events={[]} eventsByDay={map} />,
+      );
+      expect(getByText("Standup")).toBeTruthy();
+      expect(getByText("Lunch")).toBeTruthy();
     });
 
     it("spreads a multi-day event across each day it covers", () => {
