@@ -2,6 +2,7 @@
 // Built on the library's headless core and Legend List's DOM renderer. Pair with
 // the headless hooks (useDateRange, useMonthGrid) re-exported below for selection
 // state and custom layouts.
+export { Calendar, type CalendarProps } from "./Calendar";
 export {
   type DomMonthEvent,
   type DomMonthEventArgs,
