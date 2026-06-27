@@ -81,9 +81,18 @@ export function MonthList<T = unknown>({
     return Array.from({ length: count }, (_, i) => addMonths(first, i));
   }, [date, pastMonths, futureMonths]);
 
+  // The weekday header only depends on the week start and locale, not the
+  // rendered month window.
   const weekdays = useMemo(
-    () => buildMonthGrid(months[0], { weekStartsOn, locale }).weekdays,
-    [months, weekStartsOn, locale],
+    () => buildMonthGrid(date, { weekStartsOn, locale }).weekdays,
+    [date, weekStartsOn, locale],
+  );
+
+  // Stable reference so LegendList only re-renders rows when selection or events
+  // actually change, not on every parent render.
+  const extraData = useMemo(
+    () => [selectedRange, selectedDates, events] as const,
+    [selectedRange, selectedDates, events],
   );
 
   return (
@@ -110,7 +119,7 @@ export function MonthList<T = unknown>({
       </div>
       <LegendList
         data={months}
-        extraData={[selectedRange, selectedDates, events]}
+        extraData={extraData}
         keyExtractor={(m: Date) => m.toISOString()}
         recycleItems={false}
         estimatedItemSize={theme.cellHeight * 7 + 40}

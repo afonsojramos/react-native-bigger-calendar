@@ -129,12 +129,29 @@ describe("dom MonthView", () => {
           onPressMore={onPressMore}
         />,
       );
-      // 5 events, cap 3: shows 2 chips + "+3 more".
-      const more = getByText("3 more");
+      // 5 events, cap 3: shows 2 chips + "3 More".
+      const more = getByText("3 More");
       fireEvent.click(more);
       expect(onPressMore).toHaveBeenCalledTimes(1);
       expect(onPressMore.mock.calls[0][0]).toHaveLength(3);
       expect((onPressMore.mock.calls[0][1] as Date).getDate()).toBe(15);
+    });
+
+    it("keeps one chip visible at maxVisibleEventCount=1 (never only the overflow row)", () => {
+      const two: CalendarEvent[] = [
+        { title: "First", start: new Date(2026, 6, 15, 9), end: new Date(2026, 6, 15, 10) },
+        { title: "Second", start: new Date(2026, 6, 15, 11), end: new Date(2026, 6, 15, 12) },
+      ];
+      const { getByText } = render(
+        <MonthView
+          date={new Date(2026, 6, 1)}
+          weekStartsOn={1}
+          events={two}
+          maxVisibleEventCount={1}
+        />,
+      );
+      expect(getByText("First")).toBeTruthy();
+      expect(getByText("1 More")).toBeTruthy();
     });
 
     it("spreads a multi-day event across each day it covers", () => {

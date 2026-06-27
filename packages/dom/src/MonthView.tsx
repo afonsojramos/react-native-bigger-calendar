@@ -59,7 +59,7 @@ export interface MonthViewProps<T = unknown> extends DateSelectionConstraints {
   renderEvent?: DomMonthEvent<T>;
   /** Max chips shown per day before a "+N more" row (default 3). */
   maxVisibleEventCount?: number;
-  /** Template for the overflow row; `{moreCount}` is replaced (default "{moreCount} more"). */
+  /** Template for the overflow row; `{moreCount}` is replaced (default "{moreCount} More"). */
   moreLabel?: string;
   /** Tap an event chip. */
   onPressEvent?: (event: CalendarEvent<T>) => void;
@@ -267,7 +267,7 @@ export function MonthView<T = unknown>({
   events,
   renderEvent,
   maxVisibleEventCount = 3,
-  moreLabel = "{moreCount} more",
+  moreLabel = "{moreCount} More",
   onPressEvent,
   onPressMore,
   selectedRange,
@@ -410,8 +410,13 @@ export function MonthView<T = unknown>({
               if (eventsMode) {
                 const dayEvents = eventsByDay.get(startOfDay(day.date).toISOString()) ?? [];
                 const overflow = dayEvents.length > maxVisibleEventCount;
-                const shown = overflow ? dayEvents.slice(0, maxVisibleEventCount - 1) : dayEvents;
+                // Keep at least one chip visible even at maxVisibleEventCount=1,
+                // so an overflowing day never shows only the "+N more" row.
+                const shown = overflow
+                  ? dayEvents.slice(0, Math.max(maxVisibleEventCount - 1, 1))
+                  : dayEvents;
                 const rest = dayEvents.slice(shown.length);
+                const dayLabel = format(day.date, "d MMMM", locale ? { locale } : undefined);
                 return (
                   <div
                     key={day.id}
@@ -436,11 +441,11 @@ export function MonthView<T = unknown>({
                     {band ? <span data-band aria-hidden style={band} /> : null}
                     <span style={compactBadgeStyle(day, theme)}>{day.label}</span>
                     <div style={{ display: "flex", flexDirection: "column", gap: CHIP_GAP }}>
-                      {shown.map((event, i) => {
+                      {shown.map((event) => {
                         const onPress = () => onPressEvent?.(event);
                         return (
                           <button
-                            key={i}
+                            key={`${event.start.toISOString()}:${event.title}`}
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -448,6 +453,7 @@ export function MonthView<T = unknown>({
                             }}
                             style={chipButtonStyle}
                             title={event.title}
+                            aria-label={`${event.title}, ${dayLabel}`}
                           >
                             {Chip ? (
                               <Chip event={event} onPress={onPress} />
@@ -465,6 +471,7 @@ export function MonthView<T = unknown>({
                             onPressMore?.(rest, day.date);
                           }}
                           style={moreButtonStyle(theme)}
+                          aria-label={`${rest.length} more events, ${dayLabel}`}
                         >
                           {moreLabel.replace("{moreCount}", String(rest.length))}
                         </button>
