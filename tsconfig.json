@@ -14,8 +14,14 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@super-calendar/core": ["./packages/core/src/index.ts"],
+      "@super-calendar/native": ["./packages/native/src/index.tsx"],
+      "@super-calendar/native/picker": ["./packages/native/src/picker.tsx"],
+      "@super-calendar/dom": ["./packages/dom/src/index.ts"]
+    }
   },
-  "include": ["src"],
-  "exclude": ["dist", "node_modules"]
+  "include": ["packages/*/src"],
+  "exclude": ["**/dist", "**/node_modules"]
 }

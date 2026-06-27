@@ -1,23 +1,8 @@
 {
-  "name": "react-native-super-calendar",
-  "version": "1.0.0",
-  "description": "Gesture-driven, virtualized month / week / day calendar and date picker for React Native and the web.",
-  "keywords": [
-    "agenda",
-    "calendar",
-    "date-picker",
-    "datepicker",
-    "day-view",
-    "expo",
-    "month-view",
-    "range-picker",
-    "react-native",
-    "react-native-web",
-    "reanimated",
-    "timetable",
-    "web",
-    "week-view"
-  ],
+  "name": "super-calendar",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Monorepo for super-calendar: a render-agnostic core with React Native and react-dom renderers.",
   "homepage": "https://github.com/afonsojramos/react-native-super-calendar#readme",
   "bugs": {
     "url": "https://github.com/afonsojramos/react-native-super-calendar/issues"
@@ -27,79 +12,15 @@
     "type": "git",
     "url": "git+https://github.com/afonsojramos/react-native-super-calendar.git"
   },
-  "source": "./src/index.tsx",
-  "files": [
-    "src",
-    "dist",
-    "README.md",
-    "!**/__tests__",
-    "!**/__mocks__"
-  ],
-  "sideEffects": false,
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
-  "react-native": "./src/index.tsx",
-  "exports": {
-    ".": {
-      "react-native": "./src/index.tsx",
-      "import": {
-        "types": "./dist/index.d.mts",
-        "default": "./dist/index.mjs"
-      },
-      "require": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      }
-    },
-    "./picker": {
-      "react-native": "./src/picker.tsx",
-      "import": {
-        "types": "./dist/picker.d.mts",
-        "default": "./dist/picker.mjs"
-      },
-      "require": {
-        "types": "./dist/picker.d.ts",
-        "default": "./dist/picker.js"
-      }
-    },
-    "./headless": {
-      "react-native": "./src/headless.ts",
-      "import": {
-        "types": "./dist/headless.d.mts",
-        "default": "./dist/headless.mjs"
-      },
-      "require": {
-        "types": "./dist/headless.d.ts",
-        "default": "./dist/headless.js"
-      }
-    },
-    "./dom": {
-      "import": {
-        "types": "./dist/dom/index.d.mts",
-        "default": "./dist/dom/index.mjs"
-      },
-      "require": {
-        "types": "./dist/dom/index.d.ts",
-        "default": "./dist/dom/index.js"
-      }
-    },
-    "./package.json": "./package.json"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
-    "build": "tsdown",
+    "build": "pnpm -r build",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "bench": "bun scripts/bench.ts",
-    "lint": "oxlint --type-aware src && oxlint --type-aware example",
-    "lint:fix": "oxlint --fix --type-aware src && oxlint --fix --type-aware example",
+    "bench": "pnpm --filter @super-calendar/core bench",
+    "lint": "oxlint --type-aware packages",
+    "lint:fix": "oxlint --fix --type-aware packages",
     "format": "oxfmt --check .",
     "format:fix": "oxfmt .",
-    "clean": "rm -rf dist",
-    "prepublishOnly": "pnpm build",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -125,7 +46,7 @@
     "oxlint": "1.71.0",
     "oxlint-tsgolint": "^0.23.0",
     "react": "19.2.3",
-    "react-dom": "^19.2.3",
+    "react-dom": "19.2.3",
     "react-native": "0.85.3",
     "react-native-gesture-handler": "~2.31.1",
     "react-native-reanimated": "4.3.1",
@@ -133,33 +54,6 @@
     "ts-morph": "^28.0.0",
     "tsdown": "^0.22.3",
     "typescript": "^6.0.3"
-  },
-  "peerDependencies": {
-    "@legendapp/list": ">=3",
-    "date-fns": ">=3",
-    "react": ">=18",
-    "react-dom": ">=18",
-    "react-native": ">=0.74",
-    "react-native-gesture-handler": ">=2.16",
-    "react-native-reanimated": ">=4.0.0 <5",
-    "react-native-worklets": ">=0.5"
-  },
-  "peerDependenciesMeta": {
-    "react-dom": {
-      "optional": true
-    },
-    "react-native": {
-      "optional": true
-    },
-    "react-native-gesture-handler": {
-      "optional": true
-    },
-    "react-native-reanimated": {
-      "optional": true
-    },
-    "react-native-worklets": {
-      "optional": true
-    }
   },
   "packageManager": "pnpm@11.1.2"
 }

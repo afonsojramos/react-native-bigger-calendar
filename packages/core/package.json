@@ -1,0 +1,54 @@
+{
+  "name": "@super-calendar/core",
+  "version": "2.0.0",
+  "description": "Render-agnostic core for super-calendar: date math, selection model, event layout, the month-grid builder, headless hooks, and neutral theme tokens. No renderer.",
+  "keywords": [
+    "calendar",
+    "date-fns",
+    "date-picker",
+    "headless",
+    "react"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/afonsojramos/react-native-super-calendar.git",
+    "directory": "packages/core"
+  },
+  "source": "./src/index.ts",
+  "files": [
+    "dist",
+    "src",
+    "!**/__tests__"
+  ],
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "react-native": "./src/index.ts",
+  "exports": {
+    ".": {
+      "react-native": "./src/index.ts",
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "bench": "bun scripts/bench.ts"
+  },
+  "peerDependencies": {
+    "date-fns": ">=3",
+    "react": ">=18"
+  }
+}

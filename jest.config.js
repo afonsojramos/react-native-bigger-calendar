@@ -13,29 +13,40 @@ const babelTransform = {
   ],
 };
 
+// Tests import the core package by name; resolve it to source so no build is needed.
+const moduleNameMapper = {
+  "^@super-calendar/core$": "<rootDir>/packages/core/src/index.ts",
+};
+
 module.exports = {
   watchman: false,
   projects: [
     {
-      // Pure logic — fast, runs in plain Node.
-      displayName: "logic",
+      // Pure logic (core) + native non-component tests (theme, docs-sync). Plain Node.
+      displayName: "node",
       testEnvironment: "node",
-      testMatch: ["<rootDir>/src/**/*.test.ts"],
+      testMatch: [
+        "<rootDir>/packages/core/src/**/*.test.ts",
+        "<rootDir>/packages/native/src/**/*.test.ts",
+        "<rootDir>/tests/**/*.test.ts",
+      ],
       transform: babelTransform,
+      moduleNameMapper,
     },
     {
-      // react-dom component tests (the /dom renderer) via jsdom.
+      // react-dom component tests via jsdom.
       displayName: "dom",
       testEnvironment: "jsdom",
-      testMatch: ["<rootDir>/src/dom/**/*.test.tsx"],
+      testMatch: ["<rootDir>/packages/dom/src/**/*.test.tsx"],
       setupFiles: ["<rootDir>/jest.setup.dom.js"],
       transform: babelTransform,
+      moduleNameMapper,
     },
     {
-      // Component render tests via react-test-renderer + the React Native preset.
-      displayName: "components",
+      // React Native component tests via react-test-renderer + the RN preset.
+      displayName: "native",
       preset: "@react-native/jest-preset",
-      testMatch: ["<rootDir>/src/components/**/*.test.tsx"],
+      testMatch: ["<rootDir>/packages/native/src/**/*.test.tsx"],
       setupFiles: ["<rootDir>/jest.setup.components.js"],
       transform: {
         "^.+\\.(js|jsx|ts|tsx)$": [
@@ -43,11 +54,10 @@ module.exports = {
           { babelrc: false, configFile: false, presets: ["module:@react-native/babel-preset"] },
         ],
       },
-      // pnpm nests packages under .pnpm/<name>@<ver>/, so match the store dir
-      // names (where @scope/pkg becomes @scope+pkg) to transform RN's ESM source.
       transformIgnorePatterns: [
         "node_modules/.pnpm/(?!(react-native|@react-native\\+|@legendapp\\+))",
       ],
+      moduleNameMapper,
     },
   ],
 };

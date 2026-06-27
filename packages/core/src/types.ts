@@ -1,0 +1,62 @@
+export type CalendarMode = "day" | "3days" | "week" | "custom" | "month" | "schedule";
+
+/** The time-grid modes (day-column views, excluding month and schedule). */
+export type TimeGridMode = Exclude<CalendarMode, "month" | "schedule">;
+
+/**
+ * The minimal shape every calendar event must have. Layout (positioning,
+ * overlap resolution, paging) only ever reads `start`/`end`; `title` is used by
+ * the built-in default renderer. Anything else lives in your own type and is
+ * threaded through untouched via the `T` generic.
+ */
+export interface ICalendarEvent {
+  start: Date;
+  end: Date;
+  title?: string;
+  /**
+   * Force this event into the all-day lane (above the time grid) instead of the
+   * timed columns. When omitted, an event is treated as all-day only if it spans
+   * whole days (both `start` and `end` land on midnight).
+   */
+  allDay?: boolean;
+  /** Ignore taps/long-presses on this event (the built-in renderer also dims it). */
+  disabled?: boolean;
+  /**
+   * Repeat rule. Pass the event to `expandRecurringEvents(events, start, end)` to
+   * materialise its occurrences within a range; the calendar itself doesn't
+   * expand recurrences.
+   */
+  recurrence?: RecurrenceRule;
+}
+
+/** How often a recurring event repeats. */
+export type RecurrenceFrequency = "daily" | "weekly" | "monthly" | "yearly";
+
+/** A simple, RRULE-inspired repeat rule expanded by `expandRecurringEvents`. */
+export interface RecurrenceRule {
+  freq: RecurrenceFrequency;
+  /** Repeat every N periods. Default 1. */
+  interval?: number;
+  /** Stop after this many occurrences (including the first). */
+  count?: number;
+  /** Stop on/after this date (inclusive). */
+  until?: Date;
+  /**
+   * For `weekly`: the weekdays to repeat on (0 = Sunday … 6 = Saturday), keeping
+   * the event's time of day. Omit to repeat on the start date's own weekday.
+   */
+  weekdays?: WeekStartsOn[];
+}
+
+/**
+ * An event carrying arbitrary extra fields `T` alongside the required shape.
+ * `ICalendarEvent` is authoritative: keys it reserves (`start`/`end`/`title`)
+ * cannot be re-typed by `T`.
+ */
+export type CalendarEvent<T = unknown> = ICalendarEvent & Omit<T, keyof ICalendarEvent>;
+
+/** Build a stable key for an event. Defaults to start-time + index. */
+export type EventKeyExtractor<T = unknown> = (event: CalendarEvent<T>, index: number) => string;
+
+/** Sunday = 0 … Saturday = 6, matching `Date.prototype.getDay()`. */
+export type WeekStartsOn = 0 | 1 | 2 | 3 | 4 | 5 | 6;

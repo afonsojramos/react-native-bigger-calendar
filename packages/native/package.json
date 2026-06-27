@@ -1,0 +1,92 @@
+{
+  "name": "@super-calendar/native",
+  "version": "2.0.0",
+  "description": "Gesture-driven, virtualized month / week / day calendar and date picker for React Native (and web via react-native-web).",
+  "keywords": [
+    "agenda",
+    "calendar",
+    "date-picker",
+    "expo",
+    "month-view",
+    "range-picker",
+    "react-native",
+    "reanimated",
+    "timetable",
+    "week-view"
+  ],
+  "homepage": "https://github.com/afonsojramos/react-native-super-calendar#readme",
+  "bugs": {
+    "url": "https://github.com/afonsojramos/react-native-super-calendar/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/afonsojramos/react-native-super-calendar.git",
+    "directory": "packages/native"
+  },
+  "source": "./src/index.tsx",
+  "files": [
+    "dist",
+    "src",
+    "!**/__tests__"
+  ],
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "react-native": "./src/index.tsx",
+  "exports": {
+    ".": {
+      "react-native": "./src/index.tsx",
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "./picker": {
+      "react-native": "./src/picker.tsx",
+      "import": {
+        "types": "./dist/picker.d.mts",
+        "default": "./dist/picker.mjs"
+      },
+      "require": {
+        "types": "./dist/picker.d.ts",
+        "default": "./dist/picker.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown"
+  },
+  "dependencies": {
+    "@super-calendar/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "@legendapp/list": ">=3",
+    "date-fns": ">=3",
+    "react": ">=18",
+    "react-native": ">=0.74",
+    "react-native-gesture-handler": ">=2.16",
+    "react-native-reanimated": ">=4.0.0 <5",
+    "react-native-worklets": ">=0.5"
+  },
+  "peerDependenciesMeta": {
+    "react-native-gesture-handler": {
+      "optional": true
+    },
+    "react-native-reanimated": {
+      "optional": true
+    },
+    "react-native-worklets": {
+      "optional": true
+    }
+  }
+}
