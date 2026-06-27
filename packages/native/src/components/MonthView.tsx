@@ -20,7 +20,7 @@ import { type DateRange, daySelectionState, useCalendarSelection } from "@super-
 import { dayBadgeKind, rangeBandKind } from "@super-calendar/core";
 import { buildMonthWeeks, getIsToday, isSameCalendarDay, isWeekend } from "@super-calendar/core";
 import { monthEventCapacity, monthVisibleCount } from "@super-calendar/core";
-import { eventDayKeys, isAllDayEvent } from "@super-calendar/core";
+import { groupEventsByDay, isAllDayEvent } from "@super-calendar/core";
 
 // Day-cell metrics, mirrored from the styles below, used to estimate how many
 // event chips fit when auto-fitting `maxVisibleEventCount`.
@@ -165,18 +165,12 @@ function MonthViewInner<T>({
     return monthEventCapacity(available, chipRowHeight, moreRowHeight);
   }, [maxVisibleEventCount, gridHeight, weeks.length, theme]);
 
-  // Group events by calendar day once per `events` change, rather than scanning
-  // the whole list inside every one of the (up to) 42 day cells on each render.
-  // Multi-day events are indexed under every day they span.
+  // Group events by calendar day once per `events` change (shared with the dom
+  // renderer via core's `groupEventsByDay`), rather than scanning the whole list
+  // inside every one of the (up to) 42 day cells on each render. Multi-day events
+  // are indexed under every day they span.
   const eventsByDay = useMemo(() => {
-    const map = new Map<string, CalendarEvent<T>[]>();
-    for (const event of events) {
-      for (const key of eventDayKeys(event)) {
-        const existing = map.get(key);
-        if (existing) existing.push(event);
-        else map.set(key, [event]);
-      }
-    }
+    const map = groupEventsByDay(events);
     if (sortedMonthView) {
       for (const list of map.values()) list.sort((a, b) => a.start.getTime() - b.start.getTime());
     }

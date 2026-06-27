@@ -530,6 +530,7 @@ const ShadeBand = ({
   );
   return (
     <Animated.View
+      testID="business-hours-shade"
       style={[
         styles.shadeBand,
         styles.nonInteractive,

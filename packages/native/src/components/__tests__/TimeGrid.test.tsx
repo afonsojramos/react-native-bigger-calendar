@@ -102,3 +102,43 @@ describe("TimeGrid all-day lane", () => {
     expect(queryByText("Holiday")).toBeNull();
   });
 });
+
+describe("TimeGrid business hours", () => {
+  const date = new Date(2026, 0, 6, 12, 0, 0);
+
+  it("shades the closed hours around the open window (two bands)", () => {
+    const { getAllByTestId } = render(
+      <Calendar
+        mode="day"
+        date={date}
+        events={[]}
+        businessHours={() => ({ start: 9, end: 17 })}
+        onChangeDate={noop}
+        onPressEvent={noop}
+      />,
+    );
+    // Closed before 09:00 and after 17:00.
+    expect(getAllByTestId("business-hours-shade")).toHaveLength(2);
+  });
+
+  it("shades the whole day when closed (null)", () => {
+    const { getAllByTestId } = render(
+      <Calendar
+        mode="day"
+        date={date}
+        events={[]}
+        businessHours={() => null}
+        onChangeDate={noop}
+        onPressEvent={noop}
+      />,
+    );
+    expect(getAllByTestId("business-hours-shade")).toHaveLength(1);
+  });
+
+  it("shades nothing without a businessHours callback", () => {
+    const { queryAllByTestId } = render(
+      <Calendar mode="day" date={date} events={[]} onChangeDate={noop} onPressEvent={noop} />,
+    );
+    expect(queryAllByTestId("business-hours-shade")).toHaveLength(0);
+  });
+});
