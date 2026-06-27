@@ -1,4 +1,4 @@
-import { addMinutes, format, type Locale, startOfDay } from "date-fns";
+import { addDays, addMinutes, format, type Locale, startOfDay } from "date-fns";
 import {
   type ComponentType,
   type CSSProperties,
@@ -250,8 +250,14 @@ export function TimeGrid<T = unknown>({
   );
 
   const allDayByDay = useMemo(
+    // A multi-day all-day event shows in every column it overlaps (matching the
+    // native AllDayLane), not just its start day.
     () =>
-      days.map((day) => events.filter((e) => isAllDayEvent(e) && isSameCalendarDay(e.start, day))),
+      days.map((day) => {
+        const dayStart = startOfDay(day);
+        const dayEnd = addDays(dayStart, 1);
+        return events.filter((e) => isAllDayEvent(e) && e.start < dayEnd && e.end > dayStart);
+      }),
     [days, events],
   );
   const hasAllDay = allDayByDay.some((list) => list.length > 0);
@@ -323,10 +329,16 @@ export function TimeGrid<T = unknown>({
     applyDrag({ key, kind, startHours, durationHours, moved: false });
     onDragStart?.(event);
   };
+  const cancelDrag = () => {
+    applyDrag(null);
+    dragOrigin.current = null;
+  };
   const moveDrag = (e: ReactPointerEvent) => {
     const d = dragRef.current;
     if (!d || !dragOrigin.current) return;
-    const dHours = (e.clientY - dragOrigin.current.pointerY) / hourHeight;
+    // Read the live row height (ref, not the state closure) so a mid-drag zoom
+    // keeps the math aligned with what's on screen.
+    const dHours = (e.clientY - dragOrigin.current.pointerY) / hourHeightRef.current;
     const snap = (v: number) => Math.round(v / snapHours) * snapHours;
     if (d.kind === "move") {
       const startHours = clamp(
@@ -407,23 +419,41 @@ export function TimeGrid<T = unknown>({
     const endPx = pxFromTop(o.el, e.clientY);
     const day = days[o.dayIndex];
     const moved = Math.abs(endPx - o.startPx) > 4;
+    const h = hourHeightRef.current;
     if (moved && onCreateEvent) {
-      const range = cellRangeFromDrag(day, o.startPx, endPx, hourHeight, 0, dragStepMinutes);
+      const range = cellRangeFromDrag(day, o.startPx, endPx, h, 0, dragStepMinutes);
       if (range) onCreateEvent(range.start, range.end);
     } else if (onPressCell) {
-      const at = cellRangeFromDrag(day, o.startPx, o.startPx, hourHeight, 0, dragStepMinutes);
+      const at = cellRangeFromDrag(day, o.startPx, o.startPx, h, 0, dragStepMinutes);
       if (at) onPressCell(at.start);
     }
     createOrigin.current = null;
     setCreateBox(null);
   };
+  // A gesture the browser/OS cancels (scroll takeover, etc.) must not commit a
+  // create — just drop the in-progress state.
+  const cancelCreate = () => {
+    createOrigin.current = null;
+    setCreateBox(null);
+  };
 
-  const hourLines = `repeating-linear-gradient(to bottom, transparent 0, transparent ${hourHeight - 1}px, ${theme.gridLine} ${hourHeight - 1}px, ${theme.gridLine} ${hourHeight}px)`;
-  const slotHeight = hourHeight / Math.max(1, timeslots);
-  const gridLines =
-    timeslots > 1
-      ? `${hourLines}, repeating-linear-gradient(to bottom, transparent 0, transparent ${slotHeight - 1}px, ${theme.gridLine}80 ${slotHeight - 1}px, ${theme.gridLine}80 ${slotHeight}px)`
-      : hourLines;
+  // Per-day layout and shading are pure functions of days/events/businessHours,
+  // so memoize them — otherwise every drag pointermove (which calls setDrag)
+  // re-runs the full layout for each column.
+  const positionedByDay = useMemo(
+    () => days.map((day) => layoutDayEvents(events, day)),
+    [days, events],
+  );
+  const bandsByDay = useMemo(
+    () => days.map((day) => closedBands(day, businessHours)),
+    [days, businessHours],
+  );
+  const gridLines = useMemo(() => {
+    const hourLines = `repeating-linear-gradient(to bottom, transparent 0, transparent ${hourHeight - 1}px, ${theme.gridLine} ${hourHeight - 1}px, ${theme.gridLine} ${hourHeight}px)`;
+    if (timeslots <= 1) return hourLines;
+    const slotHeight = hourHeight / timeslots;
+    return `${hourLines}, repeating-linear-gradient(to bottom, transparent 0, transparent ${slotHeight - 1}px, ${theme.gridLine}80 ${slotHeight - 1}px, ${theme.gridLine}80 ${slotHeight}px)`;
+  }, [hourHeight, timeslots, theme.gridLine]);
 
   return (
     <div
@@ -504,19 +534,28 @@ export function TimeGrid<T = unknown>({
               key={days[i].toISOString()}
               style={{ flex: 1, padding: 2, display: "flex", flexDirection: "column", gap: 2 }}
             >
-              {list.map((event, j) => {
+              {list.map((event) => {
                 const args: DomRenderEventArgs<T> = {
                   event,
                   mode,
                   isAllDay: true,
+                  continuesBefore: false,
+                  continuesAfter: false,
                   ampm,
                   onPress: () => onPressEvent?.(event),
                 };
                 return (
                   <button
-                    key={j}
+                    key={`${event.start.toISOString()}:${event.title}`}
                     type="button"
                     onClick={() => onPressEvent?.(event)}
+                    aria-label={eventAccessibilityLabel({
+                      title: event.title,
+                      isAllDay: true,
+                      start: event.start,
+                      end: event.end,
+                      ampm,
+                    })}
                     style={{
                       border: "none",
                       padding: 0,
@@ -574,11 +613,11 @@ export function TimeGrid<T = unknown>({
 
           {/* Day columns */}
           {days.map((day, dayIndex) => {
-            const positioned = layoutDayEvents(events, day);
+            const positioned = positionedByDay[dayIndex];
             const showNow = showNowIndicator && isSameCalendarDay(day, new Date());
             const nowDate = new Date();
             const nowTop = ((nowDate.getHours() * 60 + nowDate.getMinutes()) / 60) * hourHeight;
-            const bands = closedBands(day, businessHours);
+            const bands = bandsByDay[dayIndex];
             const ghost = createBox?.dayIndex === dayIndex ? createBox : null;
             return (
               <div
@@ -586,7 +625,7 @@ export function TimeGrid<T = unknown>({
                 onPointerDown={cellEnabled ? (e) => beginCreate(e, dayIndex) : undefined}
                 onPointerMove={cellEnabled ? moveCreate : undefined}
                 onPointerUp={cellEnabled ? endCreate : undefined}
-                onPointerCancel={cellEnabled ? endCreate : undefined}
+                onPointerCancel={cellEnabled ? cancelCreate : undefined}
                 style={{
                   flex: 1,
                   position: "relative",
@@ -670,6 +709,7 @@ export function TimeGrid<T = unknown>({
                       onPointerUp={
                         draggable ? (e) => endDrag(e, day, pe.event, onPress) : undefined
                       }
+                      onPointerCancel={draggable ? cancelDrag : undefined}
                       onClick={draggable ? undefined : onPress}
                       style={{
                         position: "absolute",
@@ -690,9 +730,10 @@ export function TimeGrid<T = unknown>({
                       )}
                       {draggable ? (
                         <div
-                          onPointerDown={(e) =>
-                            beginDrag(e, pe.event, key, "resize", pe.startHours, pe.durationHours)
-                          }
+                          onPointerDown={(e) => {
+                            e.stopPropagation();
+                            beginDrag(e, pe.event, key, "resize", pe.startHours, pe.durationHours);
+                          }}
                           style={{
                             position: "absolute",
                             left: 0,
@@ -716,6 +757,7 @@ export function TimeGrid<T = unknown>({
                       right: 0,
                       height: 0,
                       zIndex: 2,
+                      pointerEvents: "none",
                     }}
                   >
                     <div style={{ height: 2, background: theme.nowIndicator }} />
