@@ -3,40 +3,34 @@ name: Release
 on:
   push:
     branches: [main]
-  workflow_dispatch:
-    inputs:
-      publish:
-        description: "Publish the current version to npm (use to re-run a failed publish)"
-        type: boolean
-        default: false
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
+  # Opens/updates a release PR aggregating conventional commits, and tags
+  # releases for the changed @super-calendar/* packages when that PR merges.
+  # The node-workspace plugin rolls an internal bump (core) into its dependents.
   release-please:
     runs-on: ubuntu-latest
     outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
+      releases_created: ${{ steps.release.outputs.releases_created }}
+      paths_released: ${{ steps.release.outputs.paths_released }}
     steps:
-      - uses: googleapis/release-please-action@v5
+      - uses: googleapis/release-please-action@v4
         id: release
-        with:
-          release-type: node
 
   publish:
     needs: release-please
-    if: ${{ needs.release-please.outputs.release_created == 'true' || (github.event_name == 'workflow_dispatch' && inputs.publish) }}
+    if: ${{ needs.release-please.outputs.releases_created == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write # required for npm Trusted Publishing (OIDC) — no NPM_TOKEN
+      id-token: write # npm Trusted Publishing (OIDC, provenance) — no NPM_TOKEN
     steps:
       - uses: actions/checkout@v7
       - uses: jdx/mise-action@v4
       - run: pnpm install --frozen-lockfile
-      - run: pnpm typecheck
-      - run: pnpm test
       - run: pnpm build
-      - run: pnpm publish --provenance --access public --no-git-checks
+      - run: pnpm -r publish --access public --provenance --no-git-checks
