@@ -11,7 +11,6 @@ export {
 } from "./MonthView";
 export { MonthList, type MonthListProps } from "./MonthList";
 export {
-  type BusinessHours,
   TimeGrid,
   type TimeGridProps,
   type DomRenderEvent,
@@ -19,6 +18,7 @@ export {
 } from "./TimeGrid";
 export { type DomCalendarTheme, darkDomTheme, defaultDomTheme, mergeDomTheme } from "./theme";
 export {
+  type BusinessHours,
   type CalendarEvent,
   type CalendarMode,
   type DateRange,

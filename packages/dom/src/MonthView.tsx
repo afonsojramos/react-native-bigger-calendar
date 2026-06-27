@@ -23,8 +23,9 @@ import {
   dayBadgeKind,
   type DateRange,
   type DateSelectionConstraints,
-  eventDayKeys,
+  groupEventsByDay,
   type MonthGridDay,
+  monthVisibleCount,
   rangeBandKind,
   type WeekStartsOn,
 } from "@super-calendar/core";
@@ -55,6 +56,11 @@ export interface MonthViewProps<T = unknown> extends DateSelectionConstraints {
    * the compact date-picker look.
    */
   events?: CalendarEvent<T>[];
+  /**
+   * @internal Prebuilt day→events index (from `groupEventsByDay`). `MonthList`
+   * passes this so the map is built once for the whole list, not per month.
+   */
+  eventsByDay?: ReadonlyMap<string, CalendarEvent<T>[]>;
   /** Custom chip renderer; falls back to the built-in titled chip. */
   renderEvent?: DomMonthEvent<T>;
   /** Max chips shown per day before a "+N more" row (default 3). */
@@ -265,6 +271,7 @@ export function MonthView<T = unknown>({
   date,
   weekStartsOn = 0,
   events,
+  eventsByDay: eventsByDayProp,
   renderEvent,
   maxVisibleEventCount = 3,
   moreLabel = "{moreCount} More",
@@ -290,17 +297,12 @@ export function MonthView<T = unknown>({
   // Calendar layout (date in the corner + event chips) is on whenever `events`
   // is provided; otherwise the compact picker badge layout is used.
   const eventsMode = events !== undefined;
-  const eventsByDay = useMemo(() => {
-    const map = new Map<string, CalendarEvent<T>[]>();
-    for (const event of events ?? []) {
-      for (const key of eventDayKeys(event)) {
-        const list = map.get(key);
-        if (list) list.push(event);
-        else map.set(key, [event]);
-      }
-    }
-    return map;
-  }, [events]);
+  // Use the list-built index when provided (MonthList), else build it for this
+  // month. Either way lookups use startOfDay(date).toISOString().
+  const eventsByDay = useMemo(
+    () => eventsByDayProp ?? groupEventsByDay(events ?? []),
+    [eventsByDayProp, events],
+  );
   const Chip = renderEvent;
   // Reserve `maxVisibleEventCount` rows below the date so every cell is uniform;
   // when a day overflows, the last row becomes the "+N more" affordance.
@@ -409,13 +411,15 @@ export function MonthView<T = unknown>({
 
               if (eventsMode) {
                 const dayEvents = eventsByDay.get(startOfDay(day.date).toISOString()) ?? [];
-                const overflow = dayEvents.length > maxVisibleEventCount;
-                // Keep at least one chip visible even at maxVisibleEventCount=1,
-                // so an overflowing day never shows only the "+N more" row.
-                const shown = overflow
-                  ? dayEvents.slice(0, Math.max(maxVisibleEventCount - 1, 1))
-                  : dayEvents;
-                const rest = dayEvents.slice(shown.length);
+                // Core decides how many fit; withMore keeps >=1 chip so an
+                // overflowing day never shows only the "+N more" row.
+                const visible = monthVisibleCount(dayEvents.length, {
+                  full: maxVisibleEventCount,
+                  withMore: Math.max(maxVisibleEventCount - 1, 1),
+                });
+                const shown = dayEvents.slice(0, visible);
+                const rest = dayEvents.slice(visible);
+                const overflow = rest.length > 0;
                 const dayLabel = format(day.date, "d MMMM", locale ? { locale } : undefined);
                 return (
                   <div

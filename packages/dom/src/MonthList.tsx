@@ -6,6 +6,7 @@ import {
   type CalendarEvent,
   type DateRange,
   type DateSelectionConstraints,
+  groupEventsByDay,
   type WeekStartsOn,
 } from "@super-calendar/core";
 import { type DomMonthEvent, MonthView } from "./MonthView";
@@ -88,6 +89,9 @@ export function MonthList<T = unknown>({
     [date, weekStartsOn, locale],
   );
 
+  // Build the day→events index once for the whole list rather than per month.
+  const eventsByDay = useMemo(() => (events ? groupEventsByDay(events) : undefined), [events]);
+
   // Stable reference so LegendList only re-renders rows when selection or events
   // actually change, not on every parent render.
   const extraData = useMemo(
@@ -129,6 +133,7 @@ export function MonthList<T = unknown>({
             date={item}
             weekStartsOn={weekStartsOn}
             events={events}
+            eventsByDay={eventsByDay}
             renderEvent={renderEvent}
             maxVisibleEventCount={maxVisibleEventCount}
             moreLabel={moreLabel}

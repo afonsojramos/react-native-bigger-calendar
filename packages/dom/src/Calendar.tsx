@@ -1,6 +1,7 @@
 import type { Locale } from "date-fns";
 import type { CSSProperties } from "react";
 import type {
+  BusinessHours,
   CalendarEvent,
   DateRange,
   DateSelectionConstraints,
@@ -8,7 +9,7 @@ import type {
   WeekStartsOn,
 } from "@super-calendar/core";
 import { type DomMonthEvent, MonthView } from "./MonthView";
-import { type BusinessHours, type DomRenderEvent, TimeGrid } from "./TimeGrid";
+import { type DomRenderEvent, TimeGrid } from "./TimeGrid";
 import type { DomCalendarTheme } from "./theme";
 
 export interface CalendarProps<T = unknown> extends DateSelectionConstraints {

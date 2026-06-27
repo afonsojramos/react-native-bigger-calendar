@@ -9,9 +9,11 @@ import {
   useState,
 } from "react";
 import {
+  type BusinessHours,
   type CalendarEvent,
   type CalendarMode,
   cellRangeFromDrag,
+  closedHourBands,
   eventAccessibilityLabel,
   eventTimeLabel,
   getIsToday,
@@ -30,26 +32,6 @@ import { type DomCalendarTheme, mergeDomTheme } from "./theme";
 const HOURS = Array.from({ length: 24 }, (_, h) => h);
 const GUTTER_WIDTH = 56;
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
-
-/**
- * A day's open hours for `businessHours` shading: `{ start, end }` in hours
- * (fractions allowed, e.g. 9.5), or `null` when the day is closed (fully shaded).
- * Mirrors the React Native renderer's type.
- */
-export type BusinessHours = (date: Date) => { start: number; end: number } | null;
-
-// The closed hour-spans of a day (to shade), given the businessHours callback.
-function closedBands(day: Date, businessHours?: BusinessHours): { start: number; end: number }[] {
-  const open = businessHours?.(day);
-  if (open === undefined) return [];
-  if (open === null) return [{ start: 0, end: 24 }];
-  const start = clamp(open.start, 0, 24);
-  const end = clamp(open.end, 0, 24);
-  const bands: { start: number; end: number }[] = [];
-  if (start > 0) bands.push({ start: 0, end: start });
-  if (end < 24) bands.push({ start: end, end: 24 });
-  return bands;
-}
 
 /** Props passed to a custom time-grid event renderer. */
 export interface DomRenderEventArgs<T = unknown> {
@@ -436,6 +418,17 @@ export function TimeGrid<T = unknown>({
     createOrigin.current = null;
     setCreateBox(null);
   };
+  // Keyboard equivalent of tapping/sweeping the grid: a focusable column fires
+  // this on Enter/Space at the first visible time, so create/press-cell don't
+  // require a pointer.
+  const activateCell = (day: Date) => {
+    const at = addMinutes(
+      startOfDay(day),
+      Math.round(scrollOffsetMinutes / dragStepMinutes) * dragStepMinutes,
+    );
+    if (onPressCell) onPressCell(at);
+    else if (onCreateEvent) onCreateEvent(at, addMinutes(at, dragStepMinutes));
+  };
 
   // Per-day layout and shading are pure functions of days/events/businessHours,
   // so memoize them — otherwise every drag pointermove (which calls setDrag)
@@ -445,7 +438,7 @@ export function TimeGrid<T = unknown>({
     [days, events],
   );
   const bandsByDay = useMemo(
-    () => days.map((day) => closedBands(day, businessHours)),
+    () => days.map((day) => closedHourBands(day, businessHours)),
     [days, businessHours],
   );
   const gridLines = useMemo(() => {
@@ -622,10 +615,27 @@ export function TimeGrid<T = unknown>({
             return (
               <div
                 key={day.toISOString()}
+                role={cellEnabled ? "button" : undefined}
+                tabIndex={cellEnabled ? 0 : undefined}
+                aria-label={
+                  cellEnabled ? `Add event on ${format(day, "EEEE, d MMMM yyyy", dfns)}` : undefined
+                }
                 onPointerDown={cellEnabled ? (e) => beginCreate(e, dayIndex) : undefined}
                 onPointerMove={cellEnabled ? moveCreate : undefined}
                 onPointerUp={cellEnabled ? endCreate : undefined}
                 onPointerCancel={cellEnabled ? cancelCreate : undefined}
+                onKeyDown={
+                  cellEnabled
+                    ? (e) => {
+                        // Don't hijack Enter/Space aimed at a focused event chip.
+                        if (e.target !== e.currentTarget) return;
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          activateCell(day);
+                        }
+                      }
+                    : undefined
+                }
                 style={{
                   flex: 1,
                   position: "relative",

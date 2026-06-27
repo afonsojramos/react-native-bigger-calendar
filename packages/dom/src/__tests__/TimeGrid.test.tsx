@@ -140,6 +140,18 @@ describe("dom TimeGrid", () => {
     expect(businessHours).toHaveBeenCalled();
   });
 
+  it("fires onPressCell from the keyboard on a focused column", () => {
+    const onPressCell = jest.fn();
+    const { container } = render(
+      <TimeGrid date={day} mode="day" hourHeight={48} onPressCell={onPressCell} />,
+    );
+    const col = dayColumn(container);
+    fireEvent.keyDown(col, { key: "Enter" });
+    expect(onPressCell).toHaveBeenCalledTimes(1);
+    // Default scrollOffsetMinutes is 8:00.
+    expect((onPressCell.mock.calls[0][0] as Date).getHours()).toBe(8);
+  });
+
   it("hides the all-day lane when showAllDayEventCell is false", () => {
     const allDay: CalendarEvent[] = [
       { title: "Holiday", start: new Date(2026, 5, 26), end: new Date(2026, 5, 27), allDay: true },
