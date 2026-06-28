@@ -646,11 +646,30 @@ function TimetablePageInner<T>({
 
   // Keep every page locked to the same vertical scroll position so the prev/next
   // pages are already aligned before they drag into view — no post-swipe jump.
-  const scrollHandler = useAnimatedScrollHandler((event) => {
-    if (isActive) {
+  // Only a genuine user drag (and its momentum) updates the shared offset. The
+  // contentOffset seed and the programmatic scrolls that fire during paging also
+  // emit onScroll events; letting those write `scrollY` could broadcast a transient
+  // 0 to every page (the random "snaps to midnight" behaviour), so they're ignored.
+  const isDragging = useSharedValue(false);
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      if (isActive && isDragging.value) {
+        // eslint-disable-next-line react-hooks/immutability -- Reanimated shared value: assigning .value is the intended mutation API
+        scrollY.value = event.contentOffset.y;
+      }
+    },
+    onBeginDrag: () => {
       // eslint-disable-next-line react-hooks/immutability -- Reanimated shared value: assigning .value is the intended mutation API
-      scrollY.value = event.contentOffset.y;
-    }
+      isDragging.value = true;
+    },
+    onEndDrag: () => {
+      // eslint-disable-next-line react-hooks/immutability -- Reanimated shared value: assigning .value is the intended mutation API
+      isDragging.value = false;
+    },
+    onMomentumEnd: () => {
+      // eslint-disable-next-line react-hooks/immutability -- Reanimated shared value: assigning .value is the intended mutation API
+      isDragging.value = false;
+    },
   });
 
   useAnimatedReaction(
@@ -661,6 +680,18 @@ function TimetablePageInner<T>({
       }
     },
   );
+
+  // When a page becomes the visible one (paged or jumped to), snap it to the shared
+  // vertical offset. The reaction above only syncs *inactive* pages, and only when
+  // `scrollY` changes, so a page that mounts while off-screen (or whose initial
+  // contentOffset lost a layout race) would otherwise stay stuck at the top — the
+  // random "lands at midnight instead of working hours" behaviour. Imperative so it
+  // applies on both react-native-web and native.
+  useEffect(() => {
+    if (!isActive) return;
+    scrollRef.current?.scrollTo?.({ y: scrollY.value, animated: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- scrollRef/scrollY are stable refs/shared values
+  }, [isActive]);
 
   const days = useMemo(
     () => getViewDays(mode, date, weekStartsOn, numberOfDays, isRTL, weekEndsOn),
