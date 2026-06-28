@@ -563,6 +563,8 @@ type TimetablePageProps<T> = {
   scrollOffsetMinutes: number;
   weekStartsOn: WeekStartsOn;
   weekEndsOn?: WeekStartsOn;
+  /** Full grid width (hour gutter + day columns). Comes from the container, not the window. */
+  width: number;
   hourColumnWidth: number;
   minHour: number;
   maxHour: number;
@@ -607,6 +609,7 @@ function TimetablePageInner<T>({
   scrollOffsetMinutes,
   weekStartsOn,
   weekEndsOn,
+  width,
   hourColumnWidth,
   minHour,
   maxHour,
@@ -635,7 +638,6 @@ function TimetablePageInner<T>({
   onCreateEvent,
 }: TimetablePageProps<T>) {
   const theme = useCalendarTheme();
-  const { width } = useWindowDimensions();
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
 
   // The visible page tracks the live cellHeight (animates every pinch frame);
@@ -1233,6 +1235,11 @@ function TimeGridInner<T>({
   // Horizontal list items need an explicit cross-axis height; seed it with the
   // window height (so it renders immediately and in tests) and refine on layout.
   const [pageHeight, setPageHeight] = useState(height);
+  // The grid sizes to its container width, not the window, so it fits a
+  // constrained layout on the web (e.g. a max-width card). On native the grid
+  // fills the window, so this equals the window width and behaviour is unchanged.
+  // Seeded with the window width for the first paint, refined on layout.
+  const [containerWidth, setContainerWidth] = useState(width);
   // The list must remount exactly once — when the real height replaces the
   // window-height seed — or it keeps the oversized seed and clips. It must NOT
   // remount on later height changes (e.g. a taller day header vs a shorter week
@@ -1351,14 +1358,15 @@ function TimeGridInner<T>({
 
   const snapToIndices = useMemo(() => pageDates.map((_, index) => index), [pageDates]);
   const keyExtractorList = useCallback((item: Date) => item.toISOString(), []);
-  const getFixedItemSize = useCallback(() => width, [width]);
+  const getFixedItemSize = useCallback(() => containerWidth, [containerWidth]);
   const renderItem = useCallback(
     ({ item, index }: LegendListRenderItemProps<Date>) => (
-      <View style={{ width, height: pageHeight }}>
+      <View style={{ width: containerWidth, height: pageHeight }}>
         <TimetablePage
           mode={mode}
           numberOfDays={numberOfDays}
           date={item}
+          width={containerWidth}
           events={events}
           cellHeight={cellHeight}
           hourHeight={hourHeight}
@@ -1398,7 +1406,7 @@ function TimeGridInner<T>({
       </View>
     ),
     [
-      width,
+      containerWidth,
       pageHeight,
       mode,
       numberOfDays,
@@ -1448,7 +1456,7 @@ function TimeGridInner<T>({
         <DefaultHeader
           days={headerDays}
           mode={mode}
-          width={width}
+          width={containerWidth}
           hourColumnWidth={hourColumnWidth}
           showWeekNumber={showWeekNumber}
           weekNumberPrefix={weekNumberPrefix}
@@ -1464,6 +1472,7 @@ function TimeGridInner<T>({
         style={styles.pager}
         onLayout={(event) => {
           setPageHeight(event.nativeEvent.layout.height);
+          setContainerWidth(event.nativeEvent.layout.width);
           setMeasured(true);
         }}
       >
