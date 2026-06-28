@@ -62,7 +62,7 @@ import {
   resolveDraggedBounds,
   snapDeltaMinutes,
 } from "@super-calendar/core";
-import { layoutDayEvents, type PositionedEvent } from "@super-calendar/core";
+import { formatHour, layoutDayEvents, type PositionedEvent } from "@super-calendar/core";
 import { useWebGridZoom } from "../utils/useWebGridZoom";
 import { useWebPagerKeys } from "../utils/useWebPagerKeys";
 import { AllDayLane } from "./AllDayLane";
@@ -92,7 +92,7 @@ const PAGE_VIEWABILITY = { itemVisiblePercentThreshold: 90 };
 export const DEFAULT_HOUR_HEIGHT = 64;
 const DEFAULT_MIN_HOUR_HEIGHT = 32;
 const DEFAULT_MAX_HOUR_HEIGHT = 160;
-const DEFAULT_HOUR_COLUMN_WIDTH = 50;
+const DEFAULT_HOUR_COLUMN_WIDTH = 56;
 // Short events would otherwise render only a few pixels tall and clip their
 // content; keep them tall enough to stay legible and tappable.
 const MIN_EVENT_HEIGHT = 32;
@@ -134,7 +134,7 @@ export type EventDragStartHandler<T> = (event: CalendarEvent<T>) => void;
 // Hour labels are nudged up so the number sits centred on its grid line. Pad the
 // scroll content by the same amount so the top-most label is never clipped.
 const HOUR_LABEL_TOP_INSET = 12;
-const HOUR_LABEL_NUDGE = 8;
+const HOUR_LABEL_NUDGE = 6;
 const NOW_TICK_MS = 60_000;
 
 // A `Date` that advances every minute while `enabled`, so the now-indicator
@@ -149,14 +149,6 @@ function useNow(enabled: boolean): Date {
     return () => clearInterval(id);
   }, [enabled]);
   return now;
-}
-
-// "13" in 24h, or "1 PM" in 12h. Midnight/noon read as 12 AM / 12 PM.
-function formatHourLabel(hour: number, ampm: boolean): string {
-  if (!ampm) return String(hour);
-  const period = hour < 12 ? "AM" : "PM";
-  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-  return `${hour12} ${period}`;
 }
 
 type AnimatedEventBoxProps<T> = {
@@ -1037,7 +1029,7 @@ function TimetablePageInner<T>({
                 minHour={minHour}
                 cellHeight={heightSource}
                 hourColumnWidth={hourColumnWidth}
-                label={formatHourLabel(hour, ampm)}
+                label={formatHour(hour, { ampm })}
                 ampm={ampm}
                 hourComponent={hourComponent}
               />
@@ -1760,7 +1752,8 @@ const styles = StyleSheet.create({
   },
   hourLabel: {
     marginTop: -HOUR_LABEL_NUDGE,
-    textAlign: "center",
+    textAlign: "right",
+    paddingRight: 6,
   },
   hourLine: {
     flex: 1,

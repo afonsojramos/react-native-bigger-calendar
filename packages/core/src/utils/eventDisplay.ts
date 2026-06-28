@@ -64,6 +64,21 @@ export function eventTimeLabel(args: {
 }
 
 /**
+ * The default hour-axis label shared by both renderers' time grids, so the gutter
+ * reads the same on each: 24-hour "HH:00" (e.g. "08:00"), or a compact 12-hour
+ * "h AM/PM" (e.g. "8 AM") when `ampm` is set. Exported so a custom hour renderer
+ * can reuse the same formatting.
+ */
+export function formatHour(hour: number, opts?: { ampm?: boolean }): string {
+  if (opts?.ampm) {
+    const period = hour < 12 ? "AM" : "PM";
+    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+    return `${hour12} ${period}`;
+  }
+  return `${String(hour).padStart(2, "0")}:00`;
+}
+
+/**
  * Whether the time line fits in the box. The wide `day` column and contexts with
  * no live box height (e.g. schedule, where `boxHeightPx` is undefined) always
  * show it; narrow multi-column modes only once the box is at least

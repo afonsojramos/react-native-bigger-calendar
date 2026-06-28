@@ -1,5 +1,5 @@
 import type { Locale } from "date-fns";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type {
   BusinessHours,
   CalendarEvent,
@@ -66,6 +66,8 @@ export interface CalendarProps<T = unknown> extends DateSelectionConstraints {
   onPressDateHeader?: (day: Date) => void;
   /** Custom time-grid event renderer. */
   renderTimeEvent?: DomRenderEvent<T>;
+  /** Replace the hour-axis label. Receives the hour (0–23) and the `ampm` flag. */
+  hourComponent?: (hour: number, ampm: boolean) => ReactNode;
 
   // --- Month mode ---
   /** Max chips per day before a "+N more" row. */
@@ -131,6 +133,7 @@ export function Calendar<T = unknown>({
   onDragEvent,
   onPressDateHeader,
   renderTimeEvent,
+  hourComponent,
   // month
   maxVisibleEventCount,
   moreLabel,
@@ -221,6 +224,7 @@ export function Calendar<T = unknown>({
       onDragEvent={onDragEvent}
       onPressDateHeader={onPressDateHeader}
       renderEvent={renderTimeEvent}
+      hourComponent={hourComponent}
     />
   );
 }

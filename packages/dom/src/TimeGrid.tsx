@@ -3,6 +3,7 @@ import {
   type ComponentType,
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
+  type ReactNode,
   useEffect,
   useMemo,
   useRef,
@@ -17,6 +18,7 @@ import {
   eventAccessibilityLabel,
   eventChipLayout,
   eventTimeLabel,
+  formatHour,
   getIsToday,
   getViewDays,
   isAllDayEvent,
@@ -78,6 +80,8 @@ export interface TimeGridProps<T = unknown> {
   theme?: Partial<DomCalendarTheme>;
   height?: number | string;
   renderEvent?: DomRenderEvent<T>;
+  /** Replace the hour-axis label. Receives the hour (0–23) and the `ampm` flag. */
+  hourComponent?: (hour: number, ampm: boolean) => ReactNode;
   onPressEvent?: (event: CalendarEvent<T>) => void;
   onPressDateHeader?: (day: Date) => void;
   /** Tap empty grid space; called with the date and time at the press. */
@@ -207,6 +211,7 @@ export function TimeGrid<T = unknown>({
   theme: themeOverrides,
   height = 600,
   renderEvent,
+  hourComponent,
   onPressEvent,
   onPressDateHeader,
   onPressCell,
@@ -629,7 +634,7 @@ export function TimeGrid<T = unknown>({
                   color: theme.textMuted,
                 }}
               >
-                {h === 0 ? "" : `${String(h).padStart(2, "0")}:00`}
+                {hourComponent ? hourComponent(h, ampm) : h === 0 ? "" : formatHour(h, { ampm })}
               </div>
             ))}
           </div>

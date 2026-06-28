@@ -39,7 +39,7 @@ export const defaultTheme: CalendarTheme = {
     dayNumber: { fontSize: 22, fontWeight: "700" },
     weekday: { fontSize: 13, fontWeight: "700" },
     dateCell: { fontSize: 13, fontWeight: "700" },
-    hourLabel: { fontSize: 12 },
+    hourLabel: { fontSize: 10 },
     more: { fontSize: 11, fontWeight: "700" },
     // Explicit lineHeight so the timed-grid renderer can clamp the title to a
     // whole number of lines (clipping on a line boundary, never mid-line).

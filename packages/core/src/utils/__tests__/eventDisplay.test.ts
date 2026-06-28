@@ -2,6 +2,7 @@ import {
   eventAccessibilityLabel,
   eventChipLayout,
   eventTimeLabel,
+  formatHour,
   isTimeVisibleAtHeight,
   MIN_BOX_HEIGHT_FOR_TIME,
   monthEventCapacity,
@@ -9,6 +10,22 @@ import {
   titleEllipsizeMode,
   titleNumberOfLines,
 } from "../eventDisplay";
+
+describe("formatHour", () => {
+  it("renders zero-padded 24-hour labels by default", () => {
+    expect(formatHour(0)).toBe("00:00");
+    expect(formatHour(8)).toBe("08:00");
+    expect(formatHour(13)).toBe("13:00");
+    expect(formatHour(23)).toBe("23:00");
+  });
+
+  it("renders compact 12-hour labels when ampm is set", () => {
+    expect(formatHour(0, { ampm: true })).toBe("12 AM");
+    expect(formatHour(8, { ampm: true })).toBe("8 AM");
+    expect(formatHour(12, { ampm: true })).toBe("12 PM");
+    expect(formatHour(13, { ampm: true })).toBe("1 PM");
+  });
+});
 
 describe("titleEllipsizeMode", () => {
   it("clips by default", () => {
