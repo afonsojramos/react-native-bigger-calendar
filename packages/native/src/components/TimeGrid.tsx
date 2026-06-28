@@ -887,6 +887,10 @@ function TimetablePageInner<T>({
         // When create is on, a long-press starts the create-drag, so don't also
         // fire the consumer's long-press handler.
         onLongPress={!createEnabled && onLongPressCell ? handleBackgroundLongPress : undefined}
+        // Pointer-only create surface: drag to sweep out an event. On web it's
+        // deliberately not a tab stop (react-native-web makes a Pressable focusable
+        // by default), so keyboard focus moves through events only — matching dom.
+        tabIndex={-1}
         importantForAccessibility="no"
         accessibilityElementsHidden
       />
@@ -1300,6 +1304,11 @@ function TimeGridInner<T>({
   // where the list actually sits, telling swipe-driven changes from external ones.
   const activeIndex = indexOfDate(date);
   const viewedIndexRef = useRef(activeIndex);
+  // While a programmatic scroll (a "today" button, prev/next, or any date set from
+  // outside) is settling, this holds its target index. Viewability ticks for the
+  // intermediate pages it crosses are ignored until it lands, so they can't report
+  // a page in between back as the new date — which made jumps land one page short.
+  const pendingScrollIndexRef = useRef<number | null>(null);
 
   // Header days track the active page (page-aligned), so they always match the
   // columns below and a swipe never flashes another day's label.
@@ -1318,8 +1327,23 @@ function TimeGridInner<T>({
 
   const handleViewableItemsChanged = useCallback(
     (info: OnViewableItemsChangedInfo<Date>) => {
+      // On the web the pager can't be swiped (overflow is hidden); every page change
+      // is a programmatic scroll driven by `date` (prev/next/today/keys). Viewability
+      // there only echoes that scroll back, and can report an intermediate page that
+      // fights it (a multi-page "today" jump landing one page short), so ignore it.
+      if (isWeb) return;
       const settled = info.viewableItems.find((token) => token.isViewable);
-      if (settled?.index == null || settled.index === viewedIndexRef.current) return;
+      if (settled?.index == null) return;
+      // A programmatic scroll is settling: ignore the pages it crosses, and clear
+      // the pending target (without reporting a date) once it reaches the target.
+      if (pendingScrollIndexRef.current != null) {
+        if (settled.index === pendingScrollIndexRef.current) {
+          pendingScrollIndexRef.current = null;
+          viewedIndexRef.current = settled.index;
+        }
+        return;
+      }
+      if (settled.index === viewedIndexRef.current) return;
       viewedIndexRef.current = settled.index;
       if (settled.item) onChangeDate(settled.item);
     },
@@ -1331,6 +1355,7 @@ function TimeGridInner<T>({
   useEffect(() => {
     if (activeIndex === viewedIndexRef.current) return;
     viewedIndexRef.current = activeIndex;
+    pendingScrollIndexRef.current = activeIndex;
     void listRef.current?.scrollToIndex({ index: activeIndex, animated: false });
   }, [activeIndex]);
 
