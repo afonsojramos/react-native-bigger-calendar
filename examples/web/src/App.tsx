@@ -97,6 +97,23 @@ function buildEvents(): CalendarEvent<EventMeta>[] {
       end: at(1, 0),
       allDay: true,
     },
+    // Two all-day events tomorrow, so the all-day lane stacks more than one.
+    {
+      id: "13",
+      kind: "travel",
+      title: "🏖️ Bank holiday",
+      start: at(1, 0),
+      end: at(2, 0),
+      allDay: true,
+    },
+    {
+      id: "14",
+      kind: "work",
+      title: "🎉 Company offsite",
+      start: at(1, 0),
+      end: at(2, 0),
+      allDay: true,
+    },
   ];
 }
 
@@ -313,7 +330,7 @@ const styles: Record<string, CSSProperties> = {
   subtitle: { margin: 0, color: "#6B7280", fontSize: 14 },
   tabs: { display: "flex", flexWrap: "wrap", gap: 8, padding: "8px 0" },
   tab: {
-    padding: "8px 18px",
+    padding: "6px 18px",
     borderRadius: 8,
     border: "none",
     background: "#eef0f3",

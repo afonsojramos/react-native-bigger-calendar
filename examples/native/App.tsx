@@ -122,6 +122,23 @@ function buildEvents(): CalendarEvent<EventMeta>[] {
       end: at(1, 0),
       allDay: true,
     },
+    // Two all-day events tomorrow, so the all-day lane stacks more than one.
+    {
+      id: "13",
+      kind: "travel",
+      title: "🏖️ Bank holiday",
+      start: at(1, 0),
+      end: at(2, 0),
+      allDay: true,
+    },
+    {
+      id: "14",
+      kind: "work",
+      title: "🎉 Company offsite",
+      start: at(1, 0),
+      end: at(2, 0),
+      allDay: true,
+    },
   ];
 }
 
