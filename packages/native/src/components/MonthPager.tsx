@@ -94,6 +94,28 @@ function MonthPagerInner<T>({
   const theme = useCalendarTheme();
   const { width, height } = useWindowDimensions();
   const listRef = useRef<LegendListRef>(null);
+  const containerRef = useRef<View>(null);
+
+  // Web: LegendList's horizontal scroll container is `overflow-x: auto`, so a
+  // trackpad swipe or horizontal wheel would page between months. Paging should be
+  // arrow-keys/toolbar only, so disable user horizontal scrolling (programmatic
+  // scrollToIndex still works through `overflow: hidden`).
+  useEffect(() => {
+    if (!isWeb) return;
+    const root = containerRef.current as unknown as HTMLElement | null;
+    if (!root) return;
+    const raf = requestAnimationFrame(() => {
+      for (const el of root.querySelectorAll<HTMLElement>("*")) {
+        if (el.scrollWidth <= el.clientWidth + 20 || el.clientWidth <= 100) continue;
+        const overflowX = getComputedStyle(el).overflowX;
+        if (overflowX === "auto" || overflowX === "scroll") {
+          el.style.overflowX = "hidden";
+          el.style.touchAction = "pan-y";
+        }
+      }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, []);
   // Horizontal list items need an explicit cross-axis height; seed it with the
   // window height (so it renders immediately and in tests) and refine to the
   // exact area on layout. Without this the grid collapses to 0px.
@@ -243,7 +265,7 @@ function MonthPagerInner<T>({
   );
 
   return (
-    <View style={styles.container}>
+    <View ref={containerRef} style={styles.container}>
       {/* The active month's title, above the (shared) weekday header — mirrors the
           dom MonthView's title. The grids below omit their own title/weekdays. */}
       <Text style={[styles.monthTitle, { color: theme.colors.text }]} allowFontScaling={false}>

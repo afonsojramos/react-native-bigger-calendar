@@ -1467,6 +1467,30 @@ function TimeGridInner<T>({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- containerRef/scrollY are stable
   }, []);
 
+  // Web: LegendList's horizontal scroll container is `overflow-x: auto`, so a
+  // trackpad swipe or horizontal wheel would scroll between pages. Paging should be
+  // arrow-keys/toolbar only, so disable user horizontal scrolling on it (programmatic
+  // scrollToIndex still works through `overflow: hidden`). `touch-action: pan-y`
+  // keeps vertical scrolling of the grid working.
+  useEffect(() => {
+    if (!isWeb) return;
+    const root = containerRef.current as unknown as HTMLElement | null;
+    if (!root) return;
+    const lockHorizontal = () => {
+      for (const el of root.querySelectorAll<HTMLElement>("*")) {
+        if (el.scrollWidth <= el.clientWidth + 20 || el.clientWidth <= 100) continue;
+        const overflowX = getComputedStyle(el).overflowX;
+        if (overflowX === "auto" || overflowX === "scroll") {
+          el.style.overflowX = "hidden";
+          el.style.touchAction = "pan-y";
+        }
+      }
+    };
+    const raf = requestAnimationFrame(lockHorizontal);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- containerRef is stable
+  }, [pageHeight]);
+
   // Web arrow-key paging (swipe is disabled there); the effect above scrolls to
   // the new page once `onChangeDate` updates `date`.
   const goToPage = useCallback(
