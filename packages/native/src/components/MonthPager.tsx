@@ -91,12 +91,17 @@ function MonthPagerInner<T>({
   renderHeaderForMonthView,
   renderCustomDateForMonth,
 }: MonthPagerProps<T>) {
+  const theme = useCalendarTheme();
   const { width, height } = useWindowDimensions();
   const listRef = useRef<LegendListRef>(null);
   // Horizontal list items need an explicit cross-axis height; seed it with the
   // window height (so it renders immediately and in tests) and refine to the
   // exact area on layout. Without this the grid collapses to 0px.
   const [pageHeight, setPageHeight] = useState(height);
+  // Each month page sizes to the container width, not the window, so it fits a
+  // constrained layout on the web (e.g. a max-width card). On native the pager
+  // fills the window, so this equals the window width and behaviour is unchanged.
+  const [containerWidth, setContainerWidth] = useState(width);
 
   // A fixed window of months, anchored once and aligned to the month start. The
   // array never shifts as the date changes, so paging never re-renders a page's
@@ -117,11 +122,31 @@ function MonthPagerInner<T>({
   // actually sits, letting us tell swipe-driven month changes from external ones.
   const activeIndex = indexOfMonth(date);
   const viewedIndexRef = useRef(activeIndex);
+  // While a programmatic scroll (a "today" button, prev/next, or any date set from
+  // outside) is settling, this holds its target index. Viewability ticks for the
+  // months it crosses are ignored until it lands, so they can't report a month in
+  // between back as the new date — which made jumps land one month short.
+  const pendingScrollIndexRef = useRef<number | null>(null);
 
   const handleViewableItemsChanged = useCallback(
     (info: OnViewableItemsChangedInfo<Date>) => {
+      // On the web the pager can't be swiped (overflow is hidden); every page change
+      // is a programmatic scroll driven by `date` (prev/next/today/keys). Viewability
+      // there only echoes that scroll back, and can report an intermediate month that
+      // fights it (a multi-month "today" jump landing one month short), so ignore it.
+      if (isWeb) return;
       const settled = info.viewableItems.find((token) => token.isViewable);
-      if (settled?.index == null || settled.index === viewedIndexRef.current) return;
+      if (settled?.index == null) return;
+      // A programmatic scroll is settling: ignore the months it crosses, and clear
+      // the pending target (without reporting a date) once it reaches the target.
+      if (pendingScrollIndexRef.current != null) {
+        if (settled.index === pendingScrollIndexRef.current) {
+          pendingScrollIndexRef.current = null;
+          viewedIndexRef.current = settled.index;
+        }
+        return;
+      }
+      if (settled.index === viewedIndexRef.current) return;
       viewedIndexRef.current = settled.index;
       if (settled.item) onChangeDate(settled.item);
     },
@@ -133,6 +158,7 @@ function MonthPagerInner<T>({
   useEffect(() => {
     if (activeIndex === viewedIndexRef.current) return;
     viewedIndexRef.current = activeIndex;
+    pendingScrollIndexRef.current = activeIndex;
     void listRef.current?.scrollToIndex({ index: activeIndex, animated: false });
   }, [activeIndex]);
 
@@ -157,13 +183,17 @@ function MonthPagerInner<T>({
 
   const snapToIndices = useMemo(() => monthDates.map((_, index) => index), [monthDates]);
   const keyExtractorList = useCallback((item: Date) => item.toISOString(), []);
-  const getFixedItemSize = useCallback(() => width, [width]);
+  const getFixedItemSize = useCallback(() => containerWidth, [containerWidth]);
   const renderItem = useCallback(
     ({ item }: LegendListRenderItemProps<Date>) => (
-      <View style={{ width, height: pageHeight }}>
+      <View style={{ width: containerWidth, height: pageHeight }}>
         <MonthView
           date={item}
           events={events}
+          // The pager shows one shared weekday header and the month title above it
+          // (see below), so each page's grid omits its own title and weekday row.
+          showTitle={false}
+          showWeekdays={false}
           maxVisibleEventCount={maxVisibleEventCount}
           weekStartsOn={weekStartsOn}
           locale={locale}
@@ -187,7 +217,7 @@ function MonthPagerInner<T>({
       </View>
     ),
     [
-      width,
+      containerWidth,
       pageHeight,
       events,
       maxVisibleEventCount,
@@ -214,6 +244,11 @@ function MonthPagerInner<T>({
 
   return (
     <View style={styles.container}>
+      {/* The active month's title, above the (shared) weekday header — mirrors the
+          dom MonthView's title. The grids below omit their own title/weekdays. */}
+      <Text style={[styles.monthTitle, { color: theme.colors.text }]} allowFontScaling={false}>
+        {format(date, "MMMM yyyy", locale ? { locale } : undefined)}
+      </Text>
       {renderHeaderForMonthView ? (
         renderHeaderForMonthView(weekDays)
       ) : (
@@ -221,7 +256,10 @@ function MonthPagerInner<T>({
       )}
       <View
         style={styles.pager}
-        onLayout={(event) => setPageHeight(event.nativeEvent.layout.height)}
+        onLayout={(event) => {
+          setPageHeight(event.nativeEvent.layout.height);
+          setContainerWidth(event.nativeEvent.layout.width);
+        }}
       >
         <LegendList
           // Remount when the measured page height changes so the list adopts the
@@ -297,6 +335,14 @@ const styles = StyleSheet.create({
   // Disable user-driven horizontal scroll on web; programmatic paging still works.
   webNoScroll: {
     overflow: "hidden",
+  },
+  // Matches the dom MonthView title: "MMMM yyyy" above the weekday row.
+  monthTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    paddingTop: 10,
+    paddingHorizontal: 14,
+    paddingBottom: 6,
   },
   weekdayHeader: {
     flexDirection: "row",
