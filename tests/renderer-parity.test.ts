@@ -28,9 +28,27 @@ const DOM_PLATFORM_PROPS: Record<string, Set<string>> = {
   // the dom theme is a flat object (vs native's context-provided CalendarTheme).
   TimeGrid: new Set(["className", "style", "height", "theme", "zoomable"]),
   // showTitle/showWeekdays toggle dom-only chrome; theme/className/style as above.
-  MonthView: new Set(["className", "style", "theme", "showTitle", "showWeekdays"]),
+  // keyboardDayNavigation is a web keyboard-focus concern (roving tabindex); native
+  // is touch/swipe with arrow-key paging, so it has no equivalent.
+  MonthView: new Set([
+    "className",
+    "style",
+    "theme",
+    "showTitle",
+    "showWeekdays",
+    "keyboardDayNavigation",
+  ]),
   // pastMonths/futureMonths size the dom scroll window (native virtualizes by date).
-  MonthList: new Set(["className", "style", "height", "theme", "pastMonths", "futureMonths"]),
+  // keyboardDayNavigation is web-only (see MonthView).
+  MonthList: new Set([
+    "className",
+    "style",
+    "height",
+    "theme",
+    "pastMonths",
+    "futureMonths",
+    "keyboardDayNavigation",
+  ]),
 };
 
 function componentProps(indexPath: string): Map<string, Set<string>> {

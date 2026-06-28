@@ -87,6 +87,13 @@ export interface MonthViewProps<T = unknown> extends DateSelectionConstraints {
   theme?: Partial<DomCalendarTheme>;
   /** Fired when a selectable day is clicked. */
   onPressDay?: (date: Date) => void;
+  /**
+   * When events are shown, also make the day cells keyboard-navigable: a single
+   * roving tab stop, arrow keys move the focus, Enter opens the day (`onPressDay`).
+   * Default false, so keyboard focus moves through events only. The date picker
+   * (rendered without `events`) is always navigable regardless of this flag.
+   */
+  keyboardDayNavigation?: boolean;
   className?: string;
   style?: CSSProperties;
 }
@@ -296,6 +303,7 @@ export function MonthView<T = unknown>({
   maxDate,
   isDateDisabled,
   onPressDay,
+  keyboardDayNavigation = false,
   className,
   style,
 }: MonthViewInternalProps<T>) {
@@ -304,6 +312,10 @@ export function MonthView<T = unknown>({
   // Calendar layout (date in the corner + event chips) is on whenever `events`
   // is provided; otherwise the compact picker badge layout is used.
   const eventsMode = events !== undefined;
+  // The day cells form a roving tab stop (arrow keys + Enter) in the picker
+  // always, and in events mode only when the consumer opts in. Otherwise events
+  // mode tabs through the event chips alone.
+  const dayRoving = !eventsMode || keyboardDayNavigation;
   // Use the list-built index when provided (MonthList), else build it for this
   // month. Either way lookups use startOfDay(date).toISOString().
   const eventsByDay = useMemo(
@@ -397,13 +409,15 @@ export function MonthView<T = unknown>({
         ref={gridRef}
         role="grid"
         aria-label={format(date, "MMMM yyyy", locale ? { locale } : undefined)}
-        onKeyDown={onKeyDown}
+        // Arrow-key roving applies whenever the day cells are a tab stop: the
+        // picker always, events mode only when keyboardDayNavigation is set.
+        onKeyDown={dayRoving ? onKeyDown : undefined}
       >
         {weeks.map((week) => (
           <div
             key={week.id}
             role="row"
-            style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)" }}
+            style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}
           >
             {week.days.map((day) => {
               const hidden = !showAdjacentMonths && !day.isCurrentMonth;
@@ -429,24 +443,31 @@ export function MonthView<T = unknown>({
                 const overflow = rest.length > 0;
                 const dayLabel = format(day.date, "d MMMM", locale ? { locale } : undefined);
                 return (
+                  // Events mode: by default the cell is not a tab stop, so keyboard
+                  // focus moves through the event chips (real buttons) only, not
+                  // every empty day. With keyboardDayNavigation the cell joins the
+                  // roving tab order (arrow keys + Enter to open the day). A pointer
+                  // click always drills into the day.
                   <div
                     key={day.id}
                     role="gridcell"
                     data-day={day.id}
-                    tabIndex={day.id === focusKey ? 0 : -1}
+                    tabIndex={keyboardDayNavigation ? (day.id === focusKey ? 0 : -1) : undefined}
                     aria-disabled={day.isDisabled || undefined}
                     aria-label={label}
                     style={eventCellStyle(day, theme, cellHeight)}
                     onClick={day.isDisabled ? undefined : () => onPressDay?.(day.date)}
                     onKeyDown={
-                      day.isDisabled
-                        ? undefined
-                        : (e) => {
+                      keyboardDayNavigation && !day.isDisabled
+                        ? (e) => {
+                            // Let Enter/Space on a focused chip activate the chip.
+                            if (e.target !== e.currentTarget) return;
                             if (e.key === "Enter" || e.key === " ") {
                               e.preventDefault();
                               onPressDay?.(day.date);
                             }
                           }
+                        : undefined
                     }
                   >
                     {band ? <span data-band aria-hidden style={band} /> : null}

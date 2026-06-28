@@ -40,6 +40,12 @@ export interface MonthListProps<T = unknown> extends DateSelectionConstraints {
   theme?: Partial<DomCalendarTheme>;
   /** Height of the scroll viewport, in px (default 480). */
   height?: number | string;
+  /**
+   * When events are shown, make each month's day cells keyboard-navigable (roving
+   * tab stop, arrow keys, Enter to open the day). Default false. The picker
+   * layout (no `events`) is always navigable regardless.
+   */
+  keyboardDayNavigation?: boolean;
   onPressDay?: (date: Date) => void;
   className?: string;
   style?: CSSProperties;
@@ -70,6 +76,7 @@ export function MonthList<T = unknown>({
   minDate,
   maxDate,
   isDateDisabled,
+  keyboardDayNavigation,
   onPressDay,
   className,
   style,
@@ -149,6 +156,7 @@ export function MonthList<T = unknown>({
             minDate={minDate}
             maxDate={maxDate}
             isDateDisabled={isDateDisabled}
+            keyboardDayNavigation={keyboardDayNavigation}
             onPressDay={onPressDay}
           />
         )}

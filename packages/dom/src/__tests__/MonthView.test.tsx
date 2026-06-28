@@ -54,6 +54,37 @@ describe("dom MonthView", () => {
     expect(container.querySelector('[data-day="2030-01-09"]')!.getAttribute("tabindex")).toBe("0");
   });
 
+  it("events mode tabs through events only, with no day-cell tab stops by default", () => {
+    const events: CalendarEvent[] = [
+      { title: "E", start: new Date(2030, 0, 1, 9), end: new Date(2030, 0, 1, 10) },
+    ];
+    const { container } = render(
+      <MonthView date={new Date(2030, 0, 1)} weekStartsOn={1} events={events} />,
+    );
+    // No day cell is focusable; the event chip (a button) carries the focus.
+    expect(container.querySelectorAll("[data-day][tabindex]")).toHaveLength(0);
+    expect(container.querySelector('[role="grid"] button')).toBeTruthy();
+  });
+
+  it("keyboardDayNavigation restores the roving day tab stop in events mode", () => {
+    const events: CalendarEvent[] = [
+      { title: "E", start: new Date(2030, 0, 1, 9), end: new Date(2030, 0, 1, 10) },
+    ];
+    const { container } = render(
+      <MonthView
+        date={new Date(2030, 0, 1)}
+        weekStartsOn={1}
+        events={events}
+        keyboardDayNavigation
+      />,
+    );
+    const tabbable = () => container.querySelectorAll('[data-day][tabindex="0"]');
+    expect(tabbable()).toHaveLength(1);
+    expect(container.querySelector('[data-day="2030-01-01"]')!.getAttribute("tabindex")).toBe("0");
+    fireEvent.keyDown(container.querySelector('[role="grid"]')!, { key: "ArrowRight" });
+    expect(container.querySelector('[data-day="2030-01-02"]')!.getAttribute("tabindex")).toBe("0");
+  });
+
   it("renders a rounded pill band by default and a full-cell fill when opted in", () => {
     const selectedRange = { start: new Date(2030, 0, 6), end: new Date(2030, 0, 10) };
     const { container, rerender } = render(
