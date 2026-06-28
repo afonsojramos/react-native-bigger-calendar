@@ -1605,32 +1605,36 @@ type DayHeaderProps = {
   onPressDateHeader?: (date: Date) => void;
 };
 
-const DayHeader = ({ day, mode, width, locale, activeDate, onPressDateHeader }: DayHeaderProps) => {
+const DayHeader = ({ day, width, locale, activeDate, onPressDateHeader }: DayHeaderProps) => {
   const theme = useCalendarTheme();
   const isToday = getIsToday(day);
   // Highlight the chosen `activeDate` when supplied, else the real today.
   const isHighlighted = activeDate ? isSameCalendarDay(day, activeDate) : isToday;
-  const badgeSize = mode === "day" ? 44 : 32;
 
   return (
     <Pressable
-      style={[styles.dayHeader, { width, gap: mode === "day" ? 4 : 2 }]}
+      style={[styles.dayHeader, { width }]}
       onPress={onPressDateHeader ? () => onPressDateHeader(day) : undefined}
       disabled={!onPressDateHeader}
       accessibilityRole={onPressDateHeader ? "button" : undefined}
     >
+      {/* Mirrors the dom renderer's header: the muted weekday label sits above the
+          day number, and the number's circle fills for today / the active date. */}
+      <Text
+        style={[styles.dayHeaderWeekday, { color: theme.colors.textMuted }]}
+        allowFontScaling={false}
+      >
+        {format(day, "EEE", { locale })}
+      </Text>
       <View
         style={[
           styles.dayHeaderBadge,
-          // Reserve the badge's size on every day so the highlight circle doesn't
-          // change the header's dimensions between today and other days (no shift).
-          { width: badgeSize, height: badgeSize, borderRadius: 999 },
           isHighlighted && { backgroundColor: theme.colors.todayBackground },
         ]}
       >
         <Text
           style={[
-            theme.text.dayNumber,
+            styles.dayHeaderNumber,
             { color: isHighlighted ? theme.colors.todayText : theme.colors.text },
           ]}
           allowFontScaling={false}
@@ -1639,9 +1643,6 @@ const DayHeader = ({ day, mode, width, locale, activeDate, onPressDateHeader }: 
           {day.getDate()}
         </Text>
       </View>
-      <Text style={[theme.text.weekday, { color: theme.colors.text }]} allowFontScaling={false}>
-        {format(day, "EEE", { locale })}
-      </Text>
     </Pressable>
   );
 };
@@ -1667,10 +1668,24 @@ const styles = StyleSheet.create({
   },
   dayHeader: {
     alignItems: "center",
+    gap: 2,
+    paddingVertical: 6,
+  },
+  dayHeaderWeekday: {
+    fontSize: 11,
+    fontWeight: "600",
   },
   dayHeaderBadge: {
+    // A fixed circle so the today/active fill never shifts the header's height.
+    width: 28,
+    height: 28,
+    borderRadius: 999,
     justifyContent: "center",
     alignItems: "center",
+  },
+  dayHeaderNumber: {
+    fontSize: 15,
+    fontWeight: "600",
   },
   content: {
     width: "100%",
