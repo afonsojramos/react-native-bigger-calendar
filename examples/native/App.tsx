@@ -382,13 +382,15 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, color: "#6B7280", marginTop: 2 },
   // The framed surface around the calendar / list, matching the dom example's card.
   card: {
-    flex: 1,
     width: "100%",
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: "#E2E4E9",
     borderRadius: 14,
     overflow: "hidden",
     marginBottom: 16,
+    // On the web match the dom example's calendar box (its 560px grid plus the day
+    // header and all-day lane); on a device fill the available screen.
+    ...Platform.select({ web: { height: 649 }, default: { flex: 1 } }),
   },
   tabsScroll: { flexGrow: 0 },
   tabs: { flexDirection: "row", paddingVertical: 8, gap: 8 },
