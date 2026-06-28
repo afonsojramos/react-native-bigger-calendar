@@ -8,16 +8,17 @@ import type {
   TimeGridMode,
   WeekStartsOn,
 } from "@super-calendar/core";
+import { Agenda, type DomAgendaEvent } from "./Agenda";
 import { type DomMonthEvent, MonthView } from "./MonthView";
 import { type DomRenderEvent, TimeGrid } from "./TimeGrid";
 import type { DomCalendarTheme } from "./theme";
 
 export interface CalendarProps<T = unknown> extends DateSelectionConstraints {
   /**
-   * The view to render (default "week"). `month` renders a single month grid;
-   * the others render a time grid. (`schedule`/Agenda is React-Native only.)
+   * The view to render (default "week"). `month` renders a month grid, `schedule`
+   * a day-grouped agenda list, and the others a time grid.
    */
-  mode?: "month" | TimeGridMode;
+  mode?: "month" | "schedule" | TimeGridMode;
   /** Controlled anchor date. Change it (e.g. from your own header) to navigate. */
   date: Date;
   /** Your events. */
@@ -79,19 +80,29 @@ export interface CalendarProps<T = unknown> extends DateSelectionConstraints {
   selectedRange?: DateRange;
   /** Discrete selected days. */
   selectedDates?: Date[];
+  /**
+   * In month mode, make day cells keyboard-navigable (one roving tab stop, arrow
+   * keys, Enter to open the day). Default false: keyboard focus moves through
+   * events only. Has no effect on the time-grid modes.
+   */
+  keyboardDayNavigation?: boolean;
   /** Tap a day cell. */
   onPressDay?: (date: Date) => void;
   /** Tap the "+N more" overflow row. */
   onPressMore?: (events: CalendarEvent<T>[], date: Date) => void;
   /** Custom month chip renderer. */
   renderMonthEvent?: DomMonthEvent<T>;
+
+  // --- Schedule mode ---
+  /** Custom agenda row renderer (`mode="schedule"`). */
+  renderScheduleEvent?: DomAgendaEvent<T>;
 }
 
 /**
  * Batteries-included entry point for the react-dom renderer: it picks the right
- * view for `mode`. `month` renders a single {@link MonthView}; the time-grid
- * modes render a {@link TimeGrid}. (There is no `schedule`/Agenda on the web
- * renderer.) For a scrolling month picker, use {@link MonthList} directly.
+ * view for `mode`. `month` renders a single {@link MonthView}; `schedule` renders
+ * an {@link Agenda}; the time-grid modes render a {@link TimeGrid}. For a
+ * scrolling month picker, use {@link MonthList} directly.
  */
 export function Calendar<T = unknown>({
   mode = "week",
@@ -130,10 +141,31 @@ export function Calendar<T = unknown>({
   minDate,
   maxDate,
   isDateDisabled,
+  keyboardDayNavigation,
   onPressDay,
   onPressMore,
   renderMonthEvent,
+  // schedule
+  renderScheduleEvent,
 }: CalendarProps<T>) {
+  if (mode === "schedule") {
+    return (
+      <Agenda<T>
+        events={events ?? []}
+        locale={locale}
+        ampm={ampm}
+        theme={theme}
+        height={height}
+        activeDate={date}
+        className={className}
+        style={style}
+        renderEvent={renderScheduleEvent}
+        onPressEvent={onPressEvent}
+        onPressDay={onPressDay}
+      />
+    );
+  }
+
   if (mode === "month") {
     return (
       <MonthView<T>
@@ -153,6 +185,7 @@ export function Calendar<T = unknown>({
         minDate={minDate}
         maxDate={maxDate}
         isDateDisabled={isDateDisabled}
+        keyboardDayNavigation={keyboardDayNavigation}
         onPressDay={onPressDay}
         onPressEvent={onPressEvent}
         onPressMore={onPressMore}
