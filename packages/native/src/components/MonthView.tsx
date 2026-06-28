@@ -254,6 +254,10 @@ function MonthViewInner<T>({
         key={day.toISOString()}
         style={[
           styles.dayCell,
+          // Events mode mirrors the dom renderer: left-aligned cell content with
+          // the date badge in the top-right. The picker (no grid) stays centered
+          // so the selection range band lines up with the centered badge.
+          showGrid && styles.dayCellEvents,
           showGrid && {
             borderTopWidth: StyleSheet.hairlineWidth,
             borderRightWidth: StyleSheet.hairlineWidth,
@@ -319,6 +323,7 @@ function MonthViewInner<T>({
           <View
             style={[
               styles.dateBadge,
+              showGrid && styles.dateBadgeEvents,
               isFilledBadge && {
                 backgroundColor: isHighlighted
                   ? theme.colors.todayBackground
@@ -400,11 +405,18 @@ const styles = StyleSheet.create({
     gap: 2,
     overflow: "hidden",
   },
+  dayCellEvents: {
+    alignItems: "stretch",
+  },
   dateBadge: {
     justifyContent: "center",
     alignItems: "center",
     height: 24,
     width: 24,
+  },
+  dateBadgeEvents: {
+    alignSelf: "flex-end",
+    marginRight: 4,
   },
   rangeBand: {
     position: "absolute",
@@ -412,9 +424,10 @@ const styles = StyleSheet.create({
     right: 0,
   },
   monthEvent: {
-    width: "92%",
+    marginHorizontal: 4,
   },
   moreLabel: {
     marginTop: 2,
+    marginHorizontal: 4,
   },
 });
