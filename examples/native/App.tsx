@@ -155,22 +155,24 @@ export default function App() {
             ))}
           </ScrollView>
           {activeMode === "picker" ? (
-            <View style={styles.root}>
-              <View style={styles.pickerBar}>
-                <Text style={styles.pickerLabel}>{rangeLabel(range)}</Text>
-                <Pressable style={styles.clearButton} onPress={reset}>
-                  <Text style={styles.clearText}>Clear</Text>
-                </Pressable>
+            <View style={styles.pickerScreen}>
+              <View style={styles.pickerCard}>
+                <View style={styles.pickerBar}>
+                  <Text style={styles.pickerLabel}>{rangeLabel(range)}</Text>
+                  <Pressable style={styles.clearButton} onPress={reset}>
+                    <Text style={styles.clearText}>Clear</Text>
+                  </Pressable>
+                </View>
+                <MonthList
+                  date={date}
+                  weekStartsOn={1}
+                  selectedRange={range ?? undefined}
+                  minDate={pickerMinDate}
+                  onChangeVisibleMonth={setDate}
+                  onPressDay={onPressDate}
+                  onSelectDrag={selectRange}
+                />
               </View>
-              <MonthList
-                date={date}
-                weekStartsOn={1}
-                selectedRange={range ?? undefined}
-                minDate={pickerMinDate}
-                onChangeVisibleMonth={setDate}
-                onPressDay={onPressDate}
-                onSelectDrag={selectRange}
-              />
             </View>
           ) : activeMode === "list" ? (
             <EventMenuProvider value={menuActions}>
@@ -252,6 +254,18 @@ const styles = StyleSheet.create({
   tabActive: { backgroundColor: "#1F6FEB" },
   tabText: { fontWeight: "600", color: "#1A1B1E", textTransform: "capitalize" },
   tabTextActive: { color: "#fff" },
+  // Keep the picker from sprawling: a centered card capped in width and height.
+  pickerScreen: { flex: 1, alignItems: "center", padding: 16 },
+  pickerCard: {
+    flex: 1,
+    width: "100%",
+    maxWidth: 460,
+    maxHeight: 520,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "#E2E4E9",
+    borderRadius: 14,
+    overflow: "hidden",
+  },
   pickerBar: {
     flexDirection: "row",
     alignItems: "center",
