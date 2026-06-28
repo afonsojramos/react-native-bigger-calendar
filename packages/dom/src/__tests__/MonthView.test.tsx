@@ -64,9 +64,16 @@ describe("dom MonthView", () => {
     // Default: centered pill — rounded leading edge, inset from the cell top.
     expect(startBand().style.borderTopLeftRadius).toBe("16px");
     expect(startBand().style.top).toBe("8px");
-    // A middle day keeps the band but no rounding (so the strip is continuous).
+    // The pill caps at the endpoint circle (half a 34px badge in from centre),
+    // not the cell edge, so no band spills into the space beside the circle.
+    expect(startBand().style.left).toBe("calc(50% - 17px)");
+    const endBand = container.querySelector('[data-day="2030-01-10"] [data-band]') as HTMLElement;
+    expect(endBand.style.right).toBe("calc(50% - 17px)");
+    // A middle day keeps the band but no rounding (so the strip is continuous)
+    // and spans the full cell width to bridge the endpoints.
     const mid = container.querySelector('[data-day="2030-01-08"] [data-band]') as HTMLElement;
     expect(mid.style.borderTopLeftRadius).toBe("");
+    expect(mid.style.left).toBe("0px");
 
     rerender(
       <MonthView

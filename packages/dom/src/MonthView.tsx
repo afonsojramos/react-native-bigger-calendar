@@ -126,10 +126,14 @@ function rangeBandStyle(
   const inset = fill ? 0 : Math.max(0, (theme.cellHeight - theme.rangeBandHeight) / 2);
   const radius = fill ? 0 : theme.rangeBandHeight / 2;
   const rounding = bandRounding(kind);
+  // Cap the pill at the endpoint circles: a start/end band stops at the circle's
+  // outer edge (half a badge in from the cell centre) rather than spilling to the
+  // cell edge, so no band shows in the empty space beside the day circles.
+  const cap = `calc(50% - ${theme.dayBadgeSize / 2}px)`;
   const style: CSSProperties = {
     position: "absolute",
-    left: 0,
-    right: 0,
+    left: rounding.start ? cap : 0,
+    right: rounding.end ? cap : 0,
     top: inset,
     bottom: inset,
     background: theme.rangeBackground,

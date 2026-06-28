@@ -270,13 +270,19 @@ function MonthViewInner<T>({
               fillCellOnSelection
                 ? { top: 0, bottom: 0 }
                 : { top: BAND_CENTER_Y - theme.rangeBandHeight / 2, height: theme.rangeBandHeight },
+              // Cap the pill at the endpoint circle (half a badge in from centre)
+              // instead of spilling to the cell edge, so no band shows beside it.
               !fillCellOnSelection &&
                 isRangeStart && {
+                  left: "50%",
+                  marginLeft: -DATE_BADGE_HEIGHT / 2,
                   borderTopLeftRadius: theme.rangeBandHeight / 2,
                   borderBottomLeftRadius: theme.rangeBandHeight / 2,
                 },
               !fillCellOnSelection &&
                 isRangeEnd && {
+                  right: "50%",
+                  marginRight: -DATE_BADGE_HEIGHT / 2,
                   borderTopRightRadius: theme.rangeBandHeight / 2,
                   borderBottomRightRadius: theme.rangeBandHeight / 2,
                 },
