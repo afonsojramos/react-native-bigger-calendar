@@ -1,7 +1,21 @@
 ---
-title: Headless month grid
-description: Build a fully custom calendar with useMonthGrid.
+title: Headless core
+description: Build a fully custom calendar from @super-calendar/core's pure logic.
 ---
+
+`@super-calendar/core` is the render-agnostic engine both renderers are built on:
+date math, the selection model, event layout, recurrence, time-zone conversion,
+and the neutral theme tokens. Reach for it directly only when you want entirely
+custom UI. Most apps use the [native](/quickstart) or
+[react-dom](/guides/dom) components, which already wrap all of this.
+
+```bash
+npm install @super-calendar/core date-fns
+```
+
+`react` is a peer dependency too, for the hooks; the pure functions work without it.
+
+## Month grid
 
 When you want your own day-cell markup but not the date maths, `useMonthGrid`
 gives you the grid as data: the weeks, the weekday headers, and per-day state
@@ -10,7 +24,7 @@ like.
 
 ```tsx
 import { View, Text, Pressable } from "react-native";
-import { useMonthGrid } from "react-native-super-calendar";
+import { useMonthGrid } from "@super-calendar/core";
 
 function MyMonth({ month, range }: { month: Date; range?: DateRange }) {
   const { weeks, weekdays } = useMonthGrid(month, {
@@ -50,7 +64,7 @@ function MyMonth({ month, range }: { month: Date; range?: DateRange }) {
 }
 ```
 
-## Per-day state
+### Per-day state
 
 Each `day` in `weeks[].days` carries:
 
@@ -67,8 +81,6 @@ Each `day` in `weeks[].days` carries:
 | `isRangeStart` / `isRangeEnd` | The range's two endpoints.                         |
 | `isInRange`                   | Inside a complete range (endpoints included).      |
 
-## Options
-
 `useMonthGrid(month, options)` accepts `weekStartsOn`, `showSixWeeks`, `isRTL`,
 `locale`, `selectedDates`, `selectedRange`, and the `minDate` / `maxDate` /
 `isDateDisabled` constraints.
@@ -78,3 +90,52 @@ Each `day` in `weeks[].days` carries:
   options)`; `useMonthGrid` is just a memoized wrapper around it. `buildMonthWeeks(month,
   weekStartsOn)` returns the raw `Date[][]`.
 </Tip>
+
+## Laying out timed events
+
+`layoutDayEvents(events, day)` resolves overlaps into side-by-side columns for a
+day/week grid — the same math the `TimeGrid` uses, with no rendering opinion. Each
+`PositionedEvent` gives you placement:
+
+```tsx
+import { layoutDayEvents } from "@super-calendar/core";
+
+for (const pe of layoutDayEvents(events, day)) {
+  // pe.event                              the original event
+  // pe.startHours, pe.durationHours       vertical position (hours from midnight)
+  // pe.column / pe.columns                left = (column / columns) * 100%, width = 100% / columns
+  // pe.continuesBefore / pe.continuesAfter   multi-day clipping flags
+}
+```
+
+To bucket events by calendar day (for a month or agenda), use
+`groupEventsByDay(events)` — a `Map` keyed by `startOfDay(date).toISOString()`
+that indexes multi-day events under every day they span. `eventDayKeys(event)`
+returns those keys for a single event.
+
+## More in core
+
+Every helper below is pure (safe in tests, on a server, or in a worker). See the
+TypeScript types for exact signatures.
+
+- **Drag math** — `cellRangeFromDrag` (a sweep to start/end), `resolveDraggedBounds`
+  (a move/resize to snapped bounds), `snapDeltaMinutes`, `shiftMinutes`.
+- **Event display** — `eventTimeLabel`, `eventAccessibilityLabel`,
+  `titleNumberOfLines` / `titleEllipsizeMode`, `isTimeVisibleAtHeight`.
+- **Month overflow** — `monthEventCapacity` + `monthVisibleCount` decide how many
+  chips fit before a "+N more" row.
+- **Business hours** — `closedHourBands(day, businessHours, minHour?, maxHour?)`
+  returns the hour spans to shade.
+- **Presentation** — `rangeBandKind`, `bandRounding`, `dayBadgeKind` map a day's
+  selection state to pill/badge intent (exactly what both renderers consume).
+- **Selection** — the `useDateRange` hook, plus pure `nextDateRange`,
+  `daySelectionState`, `isDateSelectable`, `isRangeEndpoint`, `isWithinDateRange`.
+- **Dates** — `getViewDays`, `getWeekDays`, `getIsToday`, `isWeekend`,
+  `isSameCalendarDay`, `minutesIntoDay`, `isAllDayEvent`.
+- **Theme tokens** — `lightColors` / `darkColors` (the neutral `CalendarColors`
+  palette) to build a theme from scratch.
+
+Recurrence (`expandRecurringEvents`) and time zones (`eventsInTimeZone`,
+`toZonedTime`) are pure core helpers too; see the
+[Recurring events](/guides/recurring-events) and [Time zones](/guides/time-zones)
+guides.
