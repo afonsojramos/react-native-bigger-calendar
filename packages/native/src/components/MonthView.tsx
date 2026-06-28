@@ -18,7 +18,13 @@ import { useCalendarTheme } from "../theme";
 import type { CalendarEvent, EventKeyExtractor, RenderEvent, WeekStartsOn } from "../types";
 import { type DateRange, daySelectionState, useCalendarSelection } from "@super-calendar/core";
 import { dayBadgeKind, rangeBandKind } from "@super-calendar/core";
-import { buildMonthWeeks, getIsToday, isSameCalendarDay, isWeekend } from "@super-calendar/core";
+import {
+  buildMonthWeeks,
+  getIsToday,
+  getWeekDays,
+  isSameCalendarDay,
+  isWeekend,
+} from "@super-calendar/core";
 import { monthEventCapacity, monthVisibleCount } from "@super-calendar/core";
 import { groupEventsByDay, isAllDayEvent } from "@super-calendar/core";
 
@@ -60,6 +66,10 @@ export type MonthViewProps<T> = {
   isRTL?: boolean;
   /** Always render six week rows, for a fixed-height grid. Default false. */
   showSixWeeks?: boolean;
+  /** Render the "MMMM yyyy" title above the grid. Default true. */
+  showTitle?: boolean;
+  /** Render the weekday-label header row above the grid. Default true. */
+  showWeekdays?: boolean;
   /** Highlight this date instead of the real "today". */
   activeDate?: Date;
   /** Days drawn as selected (a filled badge), in the month grid. */
@@ -109,6 +119,8 @@ function MonthViewInner<T>({
   disableMonthEventCellPress = false,
   isRTL = false,
   showSixWeeks = false,
+  showTitle = true,
+  showWeekdays = true,
   activeDate,
   selectedDates: selectedDatesProp,
   selectedRange: selectedRangeProp,
@@ -148,6 +160,13 @@ function MonthViewInner<T>({
     () => buildMonthWeeks(date, weekStartsOn, { showSixWeeks, isRTL }),
     [date, weekStartsOn, isRTL, showSixWeeks],
   );
+
+  // Weekday labels for the header row (any week works; reuse this month). Reversed
+  // in RTL so they line up with the mirrored day columns.
+  const weekdayLabels = useMemo(() => {
+    const days = getWeekDays(date, weekStartsOn);
+    return isRTL ? days.reverse() : days;
+  }, [date, weekStartsOn, isRTL]);
 
   // How many chips fit per cell: a fixed cap when `maxVisibleEventCount` is set,
   // else derived from the measured cell height and the (default) chip metrics.
@@ -286,6 +305,11 @@ function MonthViewInner<T>({
         // <button> is invalid HTML on web. `cell` is also closer to the correct
         // semantics for a calendar day than `button`.
         role="cell"
+        // On web, the events calendar's day cells are not tab stops, so keyboard
+        // focus moves through the event chips (real buttons) only, not every empty
+        // day — matching the dom renderer. A pointer tap still opens the day. The
+        // events-free picker layout (no grid) stays keyboard-navigable for selection.
+        {...(isWeb && showGrid ? { focusable: false } : null)}
         accessibilityLabel={accessibilityLabel}
       >
         {hasBand ? (
@@ -378,12 +402,32 @@ function MonthViewInner<T>({
   };
 
   return (
-    <View style={styles.container} onLayout={handleLayout}>
-      {weeks.map((week) => (
-        <View style={styles.weekRow} key={week[0].toISOString()}>
-          {week.map((day) => renderDay(day))}
+    <View style={styles.root}>
+      {showTitle ? (
+        <Text style={[styles.title, { color: theme.colors.text }]} allowFontScaling={false}>
+          {format(date, "MMMM yyyy", locale ? { locale } : undefined)}
+        </Text>
+      ) : null}
+      {showWeekdays ? (
+        <View style={styles.weekdayHeader}>
+          {weekdayLabels.map((day) => (
+            <Text
+              key={day.toISOString()}
+              style={[theme.text.weekday, styles.weekdayLabel, { color: theme.colors.textMuted }]}
+              allowFontScaling={false}
+            >
+              {format(day, "EEE", { locale })}
+            </Text>
+          ))}
         </View>
-      ))}
+      ) : null}
+      <View style={styles.container} onLayout={handleLayout}>
+        {weeks.map((week) => (
+          <View style={styles.weekRow} key={week[0].toISOString()}>
+            {week.map((day) => renderDay(day))}
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
@@ -391,6 +435,25 @@ function MonthViewInner<T>({
 export const MonthView = memo(MonthViewInner) as typeof MonthViewInner;
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  // Matches the dom MonthView title: "MMMM yyyy" above the grid.
+  title: {
+    fontSize: 17,
+    fontWeight: "700",
+    paddingTop: 10,
+    paddingHorizontal: 14,
+    paddingBottom: 6,
+  },
+  weekdayHeader: {
+    flexDirection: "row",
+    paddingBottom: 4,
+  },
+  weekdayLabel: {
+    flex: 1,
+    textAlign: "center",
+  },
   container: {
     flex: 1,
   },

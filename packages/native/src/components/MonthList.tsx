@@ -381,6 +381,10 @@ function MonthListInner<T>({
           <MonthView
             date={item}
             events={events}
+            // The list renders its own per-month header and a shared weekday row,
+            // so the grid itself omits the title and weekday labels.
+            showTitle={false}
+            showWeekdays={false}
             maxVisibleEventCount={maxVisibleEventCount}
             weekStartsOn={weekStartsOn}
             locale={locale}
