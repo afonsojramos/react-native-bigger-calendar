@@ -33,8 +33,15 @@ Both renderers depend on core via `workspace:*`. The npm slug and repo are `reac
 - `pnpm test` — jest
 - `pnpm build` — tsdown across all packages (`pnpm -r build`)
 - `pnpm bench` — core benchmarks (runs under bun)
+- `pnpm parity:visual` screenshots both web renderers side by side for manual visual parity (see Scripts)
 
 Use pnpm, not npm/npx. CI runs lint, format, typecheck (root + both examples), test, build, then attw + publint per package and a docs broken-link check.
+
+## Scripts
+
+`scripts/` holds dev tooling that runs directly with `node` (zero deps, no build step).
+
+- `scripts/visual-parity.mjs` (`pnpm parity:visual`) drives system Chrome over CDP to screenshot the dom (`examples/web`) and native-on-react-native-web (`examples/native`) renderers across every view at one fixed viewport, then writes `visual-parity/index.html` with the pairs side by side for eyeballing. It's a manual aid for keeping the two **web** outputs aligned when changing shared layout/styling; the automated guard is still `tests/renderer-parity.test.ts` (prop-name parity only). Start both dev servers first (`cd examples/web && pnpm dev`, `cd examples/native && pnpm start`). Output is gitignored. Override targets with `DOM_URL`, `NATIVE_URL`, `CHROME`, `VIEWS`, `WIDTH`, `HEIGHT`.
 
 ## Tests
 

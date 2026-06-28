@@ -8,3 +8,6 @@ dist/
 
 # compound-engineering pipeline run artifacts
 .context/
+
+# visual parity tool output (scripts/visual-parity.mjs)
+visual-parity/

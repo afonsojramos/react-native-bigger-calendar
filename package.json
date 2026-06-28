@@ -17,6 +17,7 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "bench": "pnpm --filter @super-calendar/core bench",
+    "parity:visual": "node scripts/visual-parity.mjs",
     "lint": "oxlint --type-aware packages",
     "lint:fix": "oxlint --fix --type-aware packages",
     "format": "oxfmt --check .",
