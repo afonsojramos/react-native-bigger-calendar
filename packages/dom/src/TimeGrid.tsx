@@ -15,15 +15,14 @@ import {
   cellRangeFromDrag,
   closedHourBands,
   eventAccessibilityLabel,
+  eventChipLayout,
   eventTimeLabel,
   getIsToday,
   getViewDays,
   isAllDayEvent,
   isSameCalendarDay,
-  isTimeVisibleAtHeight,
   layoutDayEvents,
   type TimeGridMode,
-  titleEllipsizeMode,
   titleNumberOfLines,
   type WeekStartsOn,
 } from "@super-calendar/core";
@@ -104,6 +103,13 @@ type DragState = {
   moved: boolean;
 };
 
+// Chip line metrics, matched to the box font below so the title clamp lands on a
+// line boundary. fontSize 12 * lineHeight 1.25 = 15px per line; the time reserves
+// two lines (it wraps to a second line on a narrow column).
+const DOM_TITLE_LINE_HEIGHT = 15;
+const DOM_TIME_LINE_HEIGHT = 30;
+const DOM_BOX_PADDING_V = 2;
+
 function DefaultDomEvent<T>({
   event,
   mode,
@@ -112,9 +118,6 @@ function DefaultDomEvent<T>({
   ampm = false,
   theme,
 }: DomRenderEventArgs<T> & { theme: DomCalendarTheme }) {
-  // Progressive disclosure, mirroring the RN renderer: drop the time line when
-  // the box is too short for it, so a 30-minute slot shows just its title
-  // instead of clipping both lines.
   const timeLabel = eventTimeLabel({
     mode,
     isAllDay,
@@ -123,7 +126,18 @@ function DefaultDomEvent<T>({
     ampm,
     showTime: true,
   });
-  const showTime = !isAllDay && timeLabel != null && isTimeVisibleAtHeight(boxHeight, mode);
+  // The title fills the box in whole lines; the time is secondary and only shows
+  // once a full line is free beneath it. Mirrors the RN renderer via the same
+  // core helper, so a 30-minute slot shows just its title instead of clipping
+  // both lines, and the title never ends on a half-cut line.
+  const { titleMaxLines, showTime } = eventChipLayout({
+    boxHeightPx: boxHeight,
+    mode,
+    hasTime: !isAllDay && timeLabel != null,
+    titleLineHeightPx: DOM_TITLE_LINE_HEIGHT,
+    timeLineHeightPx: DOM_TIME_LINE_HEIGHT,
+    paddingYPx: DOM_BOX_PADDING_V,
+  });
   const oneLine = titleNumberOfLines(mode, isAllDay) === 1;
   return (
     <div
@@ -131,29 +145,37 @@ function DefaultDomEvent<T>({
         height: "100%",
         boxSizing: "border-box",
         overflow: "hidden",
-        padding: "2px 6px",
+        padding: `${DOM_BOX_PADDING_V}px 6px`,
         borderRadius: 6,
         background: theme.eventBackground,
         color: theme.eventText,
         fontSize: 12,
-        lineHeight: 1.25,
+        lineHeight: `${DOM_TITLE_LINE_HEIGHT}px`,
       }}
     >
       <div
         style={{
           fontWeight: 600,
           overflow: "hidden",
+          // Clip on a line boundary with no ellipsis. The all-day lane is a single
+          // line; timed events wrap to as many whole lines as the box allows.
           ...(oneLine
-            ? {
-                whiteSpace: "nowrap",
-                textOverflow: titleEllipsizeMode(true) === "tail" ? "ellipsis" : "clip",
-              }
-            : { wordBreak: "break-word" }),
+            ? { whiteSpace: "nowrap" }
+            : {
+                wordBreak: "break-word",
+                ...(titleMaxLines > 0
+                  ? { maxHeight: titleMaxLines * DOM_TITLE_LINE_HEIGHT }
+                  : null),
+              }),
         }}
       >
         {event.title}
       </div>
-      {showTime ? <div style={{ opacity: 0.75 }}>{timeLabel}</div> : null}
+      {showTime ? (
+        <div style={{ opacity: 0.75, overflow: "hidden", maxHeight: DOM_TIME_LINE_HEIGHT }}>
+          {timeLabel}
+        </div>
+      ) : null}
     </div>
   );
 }

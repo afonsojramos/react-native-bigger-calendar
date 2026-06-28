@@ -1,5 +1,6 @@
 import {
   eventAccessibilityLabel,
+  eventChipLayout,
   eventTimeLabel,
   isTimeVisibleAtHeight,
   MIN_BOX_HEIGHT_FOR_TIME,
@@ -141,6 +142,50 @@ describe("isTimeVisibleAtHeight", () => {
     expect(isTimeVisibleAtHeight(MIN_BOX_HEIGHT_FOR_TIME, "week")).toBe(true);
     expect(isTimeVisibleAtHeight(100, "week")).toBe(true);
     expect(isTimeVisibleAtHeight(64, "3days")).toBe(true);
+  });
+});
+
+describe("eventChipLayout", () => {
+  // 16px title line, 15px time line, 2px vertical padding each side.
+  const metrics = { titleLineHeightPx: 16, timeLineHeightPx: 15, paddingYPx: 2 };
+
+  it("does not clamp when the box height is unknown (schedule)", () => {
+    expect(
+      eventChipLayout({ boxHeightPx: undefined, mode: "schedule", hasTime: true, ...metrics }),
+    ).toEqual({ titleMaxLines: 0, showTime: true });
+  });
+
+  it("fills the box with whole title lines and drops the time when it is short", () => {
+    // 40px box: inner 36px. A narrow week box this short hides the time
+    // (below the 56px threshold), so the title takes all 2 whole lines.
+    expect(eventChipLayout({ boxHeightPx: 40, mode: "week", hasTime: true, ...metrics })).toEqual({
+      titleMaxLines: 2,
+      showTime: false,
+    });
+  });
+
+  it("reserves a line for the time once the box is tall enough", () => {
+    // 80px box: inner 76px, time visible (>=56). Title gets floor((76-15)/16)=3
+    // lines, leaving 76-48=28px (>=15) for the time line.
+    expect(eventChipLayout({ boxHeightPx: 80, mode: "week", hasTime: true, ...metrics })).toEqual({
+      titleMaxLines: 3,
+      showTime: true,
+    });
+  });
+
+  it("keeps at least one title line and no time in a tiny day box", () => {
+    // The wide day column always wants the time, but a 20px box has no room:
+    // title clamps to 1 line, time is dropped rather than half-cut.
+    expect(eventChipLayout({ boxHeightPx: 20, mode: "day", hasTime: true, ...metrics })).toEqual({
+      titleMaxLines: 1,
+      showTime: false,
+    });
+  });
+
+  it("never shows the time when the event has none", () => {
+    expect(
+      eventChipLayout({ boxHeightPx: 80, mode: "week", hasTime: false, ...metrics }),
+    ).toMatchObject({ showTime: false });
   });
 });
 

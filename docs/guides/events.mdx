@@ -69,3 +69,9 @@ If you only want to tweak the built-in event box, you don't need a full
 - `eventCellStyle` — a style (or a function of the event) merged onto the
   built-in box.
 - `keyExtractor` — a stable key per event; defaults to start-time + index.
+- `showTime` shows the time range under the title (default true). The title comes
+  first: on the day/week grid it fills the box with as many whole lines as fit
+  (never a half-cut line), and the time only appears once a full line is free
+  beneath it.
+- `ellipsizeTitle` ends a single-line title (the all-day lane, month cells) with a
+  trailing ellipsis when it overflows, instead of a hard clip (default false).

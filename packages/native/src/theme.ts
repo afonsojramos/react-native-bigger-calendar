@@ -41,7 +41,9 @@ export const defaultTheme: CalendarTheme = {
     dateCell: { fontSize: 13, fontWeight: "700" },
     hourLabel: { fontSize: 12 },
     more: { fontSize: 11, fontWeight: "700" },
-    eventTitle: { fontSize: 12, fontWeight: "700" },
+    // Explicit lineHeight so the timed-grid renderer can clamp the title to a
+    // whole number of lines (clipping on a line boundary, never mid-line).
+    eventTitle: { fontSize: 12, fontWeight: "700", lineHeight: 16 },
   },
   todayBadgeRadius: 999,
   rangeBandHeight: 22,

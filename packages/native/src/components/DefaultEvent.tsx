@@ -1,19 +1,32 @@
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
-import Animated, { useAnimatedStyle } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useDerivedValue } from "react-native-reanimated";
 import { useCalendarTheme } from "../theme";
 import type { RenderEventArgs } from "../types";
 import {
   eventAccessibilityLabel,
+  eventChipLayout,
   eventTimeLabel,
-  isTimeVisibleAtHeight,
   titleEllipsizeMode,
   titleNumberOfLines,
 } from "@super-calendar/core";
 
+// Box vertical padding (mirrors styles.box) and the reserved height for the time
+// line. The time wraps to at most two lines on a narrow column, so reserve two
+// lines' worth; the title gets every whole line that fits in what remains.
+const BOX_PADDING_V = 2;
+const TIME_LINE_HEIGHT = 30;
+const FALLBACK_TITLE_LINE_HEIGHT = 16;
+
+const numericStyle = (value: number | string | undefined, fallback: number) =>
+  typeof value === "number" ? value : fallback;
+
 /**
  * The built-in event renderer: a filled, rounded box showing the event title
- * and (on the day/week grid, when the box is tall enough) its time range. Pass
- * your own `renderEvent` to `<Calendar>` to replace it entirely.
+ * and (on the day/week grid, when the box is tall enough) its time range. The
+ * title fills the box in whole lines, never a half-cut last line, and clips
+ * without an ellipsis unless `ellipsizeTitle` is set. The time is secondary: it
+ * only shows once a full line is free beneath the title. Pass your own
+ * `renderEvent` to `<Calendar>` to replace it entirely.
  */
 export function DefaultEvent<T>({
   event,
@@ -40,6 +53,10 @@ export function DefaultEvent<T>({
     allDayLabel,
   });
   const ellipsizeMode = titleEllipsizeMode(ellipsizeTitle);
+  const titleLineHeight = numericStyle(
+    theme.text.eventTitle.lineHeight,
+    FALLBACK_TITLE_LINE_HEIGHT,
+  );
 
   // Announce the full event to screen readers: title plus the all-day label or
   // the time range (which is otherwise only shown visually).
@@ -52,12 +69,37 @@ export function DefaultEvent<T>({
     allDayLabel,
   });
 
-  // Hide the time on boxes too short to fit it (driven on the UI thread, so it
-  // reveals as you pinch-zoom in). Always returns the same key so Reanimated has
-  // a prior value to diff against.
+  // Month cells and the all-day lane get a single clipped line; the timed grid
+  // (and the roomy schedule rows) wrap to fill the box. `titleNumberOfLines`
+  // returns 1 for the single-line contexts and undefined for the wrapping ones.
+  const fixedTitleLines = titleNumberOfLines(mode, isAllDayEvent);
+
+  // Whole-line title clamp + time visibility, recomputed on the UI thread as the
+  // box grows or shrinks with pinch-zoom, so the title never shows a half-cut
+  // line and the secondary time only appears once a full line is free below it.
+  const layout = useDerivedValue(
+    () =>
+      eventChipLayout({
+        boxHeightPx: boxHeight?.value,
+        mode,
+        hasTime: timeLabel != null,
+        titleLineHeightPx: titleLineHeight,
+        timeLineHeightPx: TIME_LINE_HEIGHT,
+        paddingYPx: BOX_PADDING_V,
+      }),
+    [boxHeight, mode, timeLabel, titleLineHeight],
+  );
+
+  // Clip the wrapped title to a whole number of lines (overflow hidden on the
+  // wrapper), so the visible text is always full words on full lines.
+  const titleClipStyle = useAnimatedStyle(() => {
+    const lines = layout.value.titleMaxLines;
+    return { maxHeight: lines > 0 ? lines * titleLineHeight : undefined };
+  }, [layout, titleLineHeight]);
+
   const timeStyle = useAnimatedStyle(() => {
-    return { display: isTimeVisibleAtHeight(boxHeight?.value, mode) ? "flex" : "none" };
-  }, [boxHeight, mode]);
+    return { display: layout.value.showTime ? "flex" : "none" };
+  }, [layout]);
 
   return (
     <TouchableOpacity
@@ -75,18 +117,27 @@ export function DefaultEvent<T>({
       accessibilityState={{ disabled: event.disabled ?? false }}
     >
       {event.title ? (
-        <Text
-          style={[theme.text.eventTitle, styles.title, { color: theme.colors.eventText }]}
-          // Month cells and the all-day lane are compact: one clipped line. Timed
-          // grid events (day/week/3days/…) have vertical room, so let the title
-          // wrap to fill its box. It shrinks (flexShrink) before the time, so a
-          // short box clips the title rather than slicing the time line in half.
-          numberOfLines={titleNumberOfLines(mode, isAllDayEvent)}
-          ellipsizeMode={ellipsizeMode}
-          allowFontScaling={false}
-        >
-          {event.title}
-        </Text>
+        fixedTitleLines == null ? (
+          <Animated.View style={[styles.titleClip, titleClipStyle]}>
+            <Text
+              style={[theme.text.eventTitle, { color: theme.colors.eventText }]}
+              ellipsizeMode={ellipsizeMode}
+              allowFontScaling={false}
+            >
+              {event.title}
+            </Text>
+          </Animated.View>
+        ) : (
+          <Text
+            style={[theme.text.eventTitle, styles.title, { color: theme.colors.eventText }]}
+            // Month cells and the all-day lane are compact: a single clipped line.
+            numberOfLines={fixedTitleLines}
+            ellipsizeMode={ellipsizeMode}
+            allowFontScaling={false}
+          >
+            {event.title}
+          </Text>
+        )
       ) : null}
       {timeLabel ? (
         <Animated.View style={timeStyle}>
@@ -115,17 +166,22 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     flexBasis: "auto",
     borderRadius: 6,
-    paddingVertical: 2,
+    paddingVertical: BOX_PADDING_V,
     paddingHorizontal: 4,
     overflow: "hidden",
   },
-  // Shrink and clip the title before the time line (whose default flexShrink of
-  // 0 keeps it whole), so short boxes never show a half-cut time.
+  // Clips the wrapped title to the animated whole-line max-height.
+  titleClip: {
+    overflow: "hidden",
+  },
+  // The all-day single line shrinks and clips before the time line (whose default
+  // flexShrink of 0 keeps it whole), so a short lane never shows a half-cut time.
   title: {
     flexShrink: 1,
   },
   time: {
     fontSize: 11,
+    lineHeight: 15,
   },
   disabled: {
     opacity: 0.5,
