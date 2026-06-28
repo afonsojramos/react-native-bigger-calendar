@@ -50,6 +50,12 @@ const VIEWABILITY = { itemVisiblePercentThreshold: 60 };
 // height, and the drag hit-test, so the rendered layout and the mapping agree.
 const DEFAULT_MONTH_HEADER_HEIGHT = 44;
 const DEFAULT_WEEK_ROW_HEIGHT = 56;
+// When events are shown, give each week row enough height for the day cell to
+// auto-fit about three event chips (or two plus a "+N more" row) instead of a
+// single clipped event: the date badge (24) + top padding (4) + three ~22px chip
+// rows ≈ 94, rounded up for headroom. The events-free picker keeps the compact
+// default above.
+const DEFAULT_EVENT_WEEK_ROW_HEIGHT = 96;
 // Drag-to-select: native holds to start (so a scroll/tap isn't hijacked) then
 // pans across months; nearing an edge auto-scrolls the list.
 const LONG_PRESS_MS = 250;
@@ -69,7 +75,11 @@ export type MonthListProps<T> = {
   /** Events to render in the grids. Omit for an events-free date picker. */
   events?: CalendarEvent<T>[];
   weekStartsOn: WeekStartsOn;
-  /** Height of each week row (px). The month block sizes to its row count. Default 56. */
+  /**
+   * Height of each week row (px). The month block sizes to its row count. Defaults
+   * to a taller row when `events` are shown (so a day fits ~3 chips) and a compact
+   * row for the events-free picker.
+   */
   weekRowHeight?: number;
   /**
    * Height of each month's title row (px). Default 44. A custom `renderMonthHeader`
@@ -118,7 +128,7 @@ function MonthListInner<T>({
   date,
   events = NO_EVENTS as CalendarEvent<T>[],
   weekStartsOn,
-  weekRowHeight = DEFAULT_WEEK_ROW_HEIGHT,
+  weekRowHeight: weekRowHeightProp,
   monthHeaderHeight = DEFAULT_MONTH_HEADER_HEIGHT,
   maxVisibleEventCount,
   locale,
@@ -148,6 +158,17 @@ function MonthListInner<T>({
 }: MonthListProps<T>) {
   const theme = useCalendarTheme();
   const listRef = useRef<LegendListRef>(null);
+
+  // Compact rows for the picker; taller rows once events are shown, so a day cell
+  // fits about three chips. An explicit prop always wins.
+  const weekRowHeight =
+    weekRowHeightProp ??
+    (events.length > 0 ? DEFAULT_EVENT_WEEK_ROW_HEIGHT : DEFAULT_WEEK_ROW_HEIGHT);
+
+  // Web focus containment: the index of the topmost month at least partly in the
+  // viewport. Months above it are marked `inert` (see MonthBlock) so Tab doesn't
+  // land on an off-screen month and scroll the list backwards.
+  const [firstViewableIndex, setFirstViewableIndex] = useState(0);
 
   // A fixed window of months anchored once, aligned to the month start.
   const [anchorDate] = useState(date);
@@ -355,6 +376,12 @@ function MonthListInner<T>({
       // threshold), i.e. the one anchored at the top of the viewport.
       const settled = info.viewableItems.find((token) => token.isViewable);
       if (settled?.item && onChangeVisibleMonth) onChangeVisibleMonth(settled.item);
+      // Track the topmost viewable index so months above it can be made inert on
+      // web (see MonthBlock). Only the web path consumes this.
+      const topIndex = settled?.index;
+      if (isWeb && typeof topIndex === "number") {
+        setFirstViewableIndex((prev) => (prev === topIndex ? prev : topIndex));
+      }
     },
     [onChangeVisibleMonth],
   );
@@ -362,7 +389,12 @@ function MonthListInner<T>({
   const dragEnabled = onSelectDrag != null;
   const renderItem = useCallback(
     ({ item, index }: LegendListRenderItemProps<Date>) => (
-      <View style={{ height: blockHeightAt(index) }}>
+      <MonthBlock
+        height={blockHeightAt(index)}
+        // Above-viewport months are inert on web so Tab can't jump backwards into
+        // them. Only meaningful for the events list; the picker stays navigable.
+        inert={isWeb && events.length > 0 && index < firstViewableIndex}
+      >
         {/* Pin the header to monthHeaderHeight so the grid below is exactly
             weeks * weekRowHeight, keeping the drag hit-test aligned. */}
         <View style={[styles.monthHeader, { height: monthHeaderHeight }]}>
@@ -407,10 +439,11 @@ function MonthListInner<T>({
             onDayPointerEnter={isWeb && dragEnabled ? onDayPointerEnter : undefined}
           />
         </View>
-      </View>
+      </MonthBlock>
     ),
     [
       blockHeightAt,
+      firstViewableIndex,
       monthHeaderHeight,
       renderMonthHeader,
       theme,
@@ -446,6 +479,9 @@ function MonthListInner<T>({
       style={styles.list}
       data={monthDates}
       recycleItems={false}
+      // Re-render mounted months when the viewport cutoff changes, so the inert
+      // flag on above-viewport months (web focus containment) stays current.
+      extraData={firstViewableIndex}
       keyExtractor={keyExtractorList}
       getFixedItemSize={getFixedItemSize}
       initialScrollIndex={initialIndex}
@@ -485,6 +521,35 @@ function MonthListInner<T>({
         )}
       </View>
     </CalendarSelectionProvider>
+  );
+}
+
+// A virtualized list keeps a band of rendered months just outside the viewport.
+// On web their event chips are real tab stops, so tabbing in from outside would
+// land on a month above the viewport and the browser would scroll it into view,
+// jumping the visible month. Marking off-screen-above months `inert` keeps them
+// out of the tab order (and pointer/AT), so Tab enters at the first visible month
+// without a jump. Months below stay tabbable, so forward Tab scrolls down as
+// expected. `inert` is web-only and a no-op on native.
+function MonthBlock({
+  height,
+  inert,
+  children,
+}: {
+  height: number;
+  inert: boolean;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<View>(null);
+  useEffect(() => {
+    if (!isWeb) return;
+    const node = ref.current as unknown as { inert?: boolean } | null;
+    if (node) node.inert = inert;
+  }, [inert]);
+  return (
+    <View ref={ref} style={{ height }}>
+      {children}
+    </View>
   );
 }
 
