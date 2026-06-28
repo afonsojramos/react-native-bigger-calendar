@@ -401,7 +401,7 @@ function MonthListInner<T>({
           {renderMonthHeader ? (
             renderMonthHeader(item)
           ) : (
-            <Text style={[theme.text.dayNumber, styles.monthTitle, { color: theme.colors.text }]}>
+            <Text style={[styles.monthTitle, { color: theme.colors.text }]}>
               {format(item, "LLLL yyyy", { locale })}
             </Text>
           )}
@@ -559,7 +559,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   list: { flex: 1 },
   monthHeader: { justifyContent: "center" },
-  monthTitle: { paddingHorizontal: 8 },
+  monthTitle: { paddingHorizontal: 8, fontSize: 17, fontWeight: "700" },
   grid: { flex: 1 },
   weekdayHeader: {
     flexDirection: "row",
