@@ -6,7 +6,9 @@
     "paths": {
       "@super-calendar/native": ["../../packages/native/src/index.tsx"],
       "@super-calendar/native/picker": ["../../packages/native/src/picker.tsx"],
-      "@super-calendar/core": ["../../packages/core/src/index.ts"]
+      "@super-calendar/core": ["../../packages/core/src/index.ts"],
+      "@super-calendar/example-shared": ["../shared/src/EventMenu.tsx"],
+      "@super-calendar/example-shared/menu": ["../shared/src/EventMenuWrapper.tsx"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"]

@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* The menu primitives live next to this file. Tailwind v4 skips node_modules, and
+   this package is resolved through a workspace symlink, so scan its sources
+   explicitly to keep the menu's utility classes. */
+@source "./*.tsx";
+
 @theme {
   --color-background: #ffffff;
   --color-foreground: #1a1b1e;

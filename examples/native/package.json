@@ -10,15 +10,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@base-ui/react": "^1.6.0",
     "@expo/metro-runtime": "~56.0.15",
     "@legendapp/list": "^3.0.6",
+    "@super-calendar/example-shared": "workspace:*",
     "@super-calendar/native": "workspace:*",
-    "cnfast": "^0.0.8",
     "date-fns": "4.4.0",
     "expo": "~56.0.6",
     "expo-haptics": "~56.0.3",
-    "lucide-react": "^1.21.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.85.3",
