@@ -682,8 +682,11 @@ function TimetablePageInner<T>({
   // contentOffset lost a layout race) would otherwise stay stuck at the top — the
   // random "lands at midnight instead of working hours" behaviour. Imperative so it
   // applies on both react-native-web and native.
+  // Native only: web is handled by the container-level effect in TimeGridInner,
+  // which resets the on-screen page's DOM scroll node directly (the per-page ref
+  // can't reliably reach the recycled container on react-native-web).
   useEffect(() => {
-    if (!isActive) return;
+    if (isWeb || !isActive) return;
     scrollRef.current?.scrollTo?.({ y: scrollY.value, animated: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- scrollRef/scrollY are stable refs/shared values
   }, [isActive]);
@@ -1384,6 +1387,45 @@ function TimeGridInner<T>({
     pendingScrollIndexRef.current = activeIndex;
     void listRef.current?.scrollToIndex({ index: activeIndex, animated: false });
   }, [activeIndex]);
+
+  // react-native-web only: paging recycles the page containers and resets their
+  // vertical scroll, so the on-screen page randomly lands at the top. After the
+  // page settles, restore the shared offset directly on the visible page's scroll
+  // node — the one lever that reliably works on the web. Deferred a frame (twice,
+  // for safety) so the paged-in grid has laid out before we scroll it.
+  useEffect(() => {
+    if (!isWeb) return;
+    const root = containerRef.current as unknown as HTMLElement | null;
+    if (!root) return;
+    const restoreVisiblePage = () => {
+      const vw = (root.ownerDocument?.defaultView ?? globalThis).innerWidth;
+      for (const el of root.querySelectorAll<HTMLElement>("*")) {
+        const style = getComputedStyle(el);
+        const scrollable =
+          (style.overflowY === "scroll" || style.overflowY === "auto") &&
+          el.scrollHeight > el.clientHeight + 20 &&
+          el.clientHeight > 100;
+        if (!scrollable) continue;
+        const rect = el.getBoundingClientRect();
+        if (rect.left > -50 && rect.right <= vw + 50) {
+          el.scrollTop = scrollY.value;
+          break;
+        }
+      }
+    };
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      restoreVisiblePage();
+      raf2 = requestAnimationFrame(restoreVisiblePage);
+    });
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
+    // `pageHeight` is included so this also runs once the pager measures its real
+    // height on first open (the mount pass runs before the pages have laid out).
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- containerRef/scrollY are stable
+  }, [activeIndex, pageHeight]);
 
   // Web arrow-key paging (swipe is disabled there); the effect above scrolls to
   // the new page once `onChangeDate` updates `date`.
