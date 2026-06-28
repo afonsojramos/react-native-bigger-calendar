@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "react-native-super-calendar",
+  "name": "super-calendar",
   "colors": {
     "primary": "#1F6FEB",
     "light": "#4D8DF5",
@@ -43,7 +43,7 @@
     "links": [
       {
         "label": "npm",
-        "href": "https://www.npmjs.com/package/react-native-super-calendar"
+        "href": "https://www.npmjs.com/package/@super-calendar/native"
       }
     ],
     "primary": {

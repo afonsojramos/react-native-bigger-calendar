@@ -1,6 +1,6 @@
 # Documentation
 
-The [Mintlify](https://mintlify.com) docs site for react-native-super-calendar.
+The [Mintlify](https://mintlify.com) docs site for super-calendar.
 
 ## Develop
 

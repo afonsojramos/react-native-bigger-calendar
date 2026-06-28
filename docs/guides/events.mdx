@@ -10,7 +10,7 @@ Events are plain objects. The only required fields are `start`, `end`, and
 attach your own fields and read them back in callbacks and renderers.
 
 ```tsx
-import type { CalendarEvent } from "react-native-super-calendar";
+import type { CalendarEvent } from "@super-calendar/native";
 
 type Meta = { id: string; calendarId: string; color: string };
 
@@ -42,7 +42,7 @@ Pass `renderEvent` — a component (so it can use hooks) that receives
 all-day, multi-day), so you only write it once.
 
 ```tsx
-import type { RenderEventArgs } from "react-native-super-calendar";
+import type { RenderEventArgs } from "@super-calendar/native";
 import { Pressable, Text } from "react-native";
 
 function MyEvent({ event, onPress }: RenderEventArgs<Meta>) {

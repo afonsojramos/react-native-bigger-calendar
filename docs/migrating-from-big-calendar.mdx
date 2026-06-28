@@ -18,14 +18,14 @@ Copy this into Claude Code, Cursor, or any coding agent working in your repo.
 
 ```text
 You are migrating a React Native app from `react-native-big-calendar` to
-`react-native-super-calendar`. They share the same calendar model
+`@super-calendar/native`. They share the same calendar model
 (month/week/day/3days/custom/schedule) and a similar `<Calendar>` API, but
 super-calendar is built on Reanimated and Legend List, so this is not a drop-in
 swap. Make the smallest changes that compile and preserve the current behaviour.
 
 1. Dependencies
    - Remove `react-native-big-calendar`.
-   - Add `react-native-super-calendar` and its peers: `react-native-reanimated`
+   - Add `@super-calendar/native` and its peers: `react-native-reanimated`
      (v4), `react-native-gesture-handler`, `react-native-worklets`,
      `@legendapp/list` (v3), and `date-fns`. On Expo use `npx expo install`.
    - Make sure the Reanimated/worklets Babel plugin is configured (the Expo
@@ -37,7 +37,7 @@ swap. Make the smallest changes that compile and preserve the current behaviour.
 
 3. Imports
    - Change every `from "react-native-big-calendar"` to
-     `from "react-native-super-calendar"`. Type imports map to `CalendarEvent<T>`,
+     `from "@super-calendar/native"`. Type imports map to `CalendarEvent<T>`,
      `CalendarMode`, and `RenderEventArgs<T>`.
 
 4. Layout (most common gotcha)
@@ -103,12 +103,12 @@ drag/zoom you want is wired (`onDragEvent`, `onCreateEvent`).
 
 ### Renamed props
 
-| react-native-big-calendar | react-native-super-calendar | Note                                |
-| ------------------------- | --------------------------- | ----------------------------------- |
-| `hourRowHeight`           | `hourHeight`                | Same meaning.                       |
-| `renderHeader`            | `renderTimeGridHeader`      | Week/day header; receives the days. |
-| `onPressMoreLabel`        | `onPressMore`               | Now `(events, date) => void`.       |
-| `hideNowIndicator`        | `showNowIndicator`          | Inverted boolean; shown by default. |
+| react-native-big-calendar | @super-calendar/native | Note                                |
+| ------------------------- | ---------------------- | ----------------------------------- |
+| `hourRowHeight`           | `hourHeight`           | Same meaning.                       |
+| `renderHeader`            | `renderTimeGridHeader` | Week/day header; receives the days. |
+| `onPressMoreLabel`        | `onPressMore`          | Now `(events, date) => void`.       |
+| `hideNowIndicator`        | `showNowIndicator`     | Inverted boolean; shown by default. |
 
 ### Removed props
 
