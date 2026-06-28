@@ -87,9 +87,9 @@ describe("dom TimeGrid", () => {
     expect(getByText("Focus")).toBeTruthy();
   });
 
-  // The day column carries the crosshair cursor when create/press is enabled.
+  // The day column is the only element with a left border (day separator).
   function dayColumn(container: HTMLElement): HTMLElement {
-    return container.querySelector<HTMLElement>('[style*="crosshair"]')!;
+    return container.querySelector<HTMLElement>('[style*="border-left"]')!;
   }
 
   it("sweeps out a new event from empty grid space", () => {
@@ -140,34 +140,29 @@ describe("dom TimeGrid", () => {
     expect(businessHours).toHaveBeenCalled();
   });
 
-  it("fires onPressCell from the keyboard on a focused column", () => {
-    const onPressCell = jest.fn();
+  it("does not make empty day columns keyboard tab stops", () => {
     const { container } = render(
-      <TimeGrid date={day} mode="day" hourHeight={48} onPressCell={onPressCell} />,
+      <TimeGrid date={day} mode="day" hourHeight={48} onCreateEvent={jest.fn()} />,
     );
-    const col = dayColumn(container);
-    fireEvent.keyDown(col, { key: "Enter" });
-    expect(onPressCell).toHaveBeenCalledTimes(1);
-    // Default scrollOffsetMinutes is 8:00.
-    expect((onPressCell.mock.calls[0][0] as Date).getHours()).toBe(8);
+    // Empty columns are pointer-only; keyboard focus moves through events only.
+    expect(dayColumn(container).getAttribute("tabindex")).toBeNull();
   });
 
-  it("fires onCreateEvent from the keyboard when only onCreateEvent is set", () => {
-    const onCreateEvent = jest.fn();
-    const { container } = render(
+  it("keeps events keyboard-focusable and activatable", () => {
+    const onPressEvent = jest.fn();
+    const { getByText } = render(
       <TimeGrid
         date={day}
         mode="day"
+        events={events}
         hourHeight={48}
-        dragStepMinutes={15}
-        onCreateEvent={onCreateEvent}
+        onPressEvent={onPressEvent}
       />,
     );
-    fireEvent.keyDown(dayColumn(container), { key: "Enter" });
-    expect(onCreateEvent).toHaveBeenCalledTimes(1);
-    const [start, end] = onCreateEvent.mock.calls[0] as [Date, Date];
-    // A point activation creates a one-step event.
-    expect(end.getTime() - start.getTime()).toBe(15 * 60 * 1000);
+    const box = wrapperOf(getByText("Focus"));
+    expect(box.getAttribute("tabindex")).toBe("0");
+    fireEvent.keyDown(box, { key: "Enter" });
+    expect(onPressEvent).toHaveBeenCalledTimes(1);
   });
 
   it("hides the all-day lane when showAllDayEventCell is false", () => {

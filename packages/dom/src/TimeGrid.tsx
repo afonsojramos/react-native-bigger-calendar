@@ -440,18 +440,6 @@ export function TimeGrid<T = unknown>({
     createOrigin.current = null;
     setCreateBox(null);
   };
-  // Keyboard equivalent of tapping/sweeping the grid: a focusable column fires
-  // this on Enter/Space at the currently visible top of the grid, so
-  // create/press-cell don't require a pointer.
-  const activateCell = (day: Date) => {
-    const visibleMinutes = ((scrollRef.current?.scrollTop ?? 0) / hourHeightRef.current) * 60;
-    const at = addMinutes(
-      startOfDay(day),
-      Math.round(visibleMinutes / dragStepMinutes) * dragStepMinutes,
-    );
-    if (onPressCell) onPressCell(at);
-    else if (onCreateEvent) onCreateEvent(at, addMinutes(at, dragStepMinutes));
-  };
 
   // Per-day layout and shading are pure functions of days/events/businessHours,
   // so memoize them — otherwise every drag pointermove (which calls setDrag)
@@ -657,32 +645,17 @@ export function TimeGrid<T = unknown>({
             return (
               <div
                 key={day.toISOString()}
-                role={cellEnabled ? "button" : undefined}
-                tabIndex={cellEnabled ? 0 : undefined}
-                aria-label={
-                  cellEnabled ? `Add event on ${format(day, "EEEE, d MMMM yyyy", dfns)}` : undefined
-                }
+                // Empty columns are a pointer-only create surface: drag to sweep
+                // out an event. They are deliberately not tab stops, so keyboard
+                // focus moves through events only, not every empty day.
                 onPointerDown={cellEnabled ? (e) => beginCreate(e, dayIndex) : undefined}
                 onPointerMove={cellEnabled ? moveCreate : undefined}
                 onPointerUp={cellEnabled ? endCreate : undefined}
                 onPointerCancel={cellEnabled ? cancelCreate : undefined}
-                onKeyDown={
-                  cellEnabled
-                    ? (e) => {
-                        // Don't hijack Enter/Space aimed at a focused event chip.
-                        if (e.target !== e.currentTarget) return;
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          activateCell(day);
-                        }
-                      }
-                    : undefined
-                }
                 style={{
                   flex: 1,
                   position: "relative",
                   borderLeft: `1px solid ${theme.gridLine}`,
-                  cursor: cellEnabled ? "crosshair" : "default",
                 }}
               >
                 {/* Business-hours shade, behind the grid lines and events. */}
