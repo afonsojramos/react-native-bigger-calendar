@@ -1,5 +1,5 @@
 import { addDays, startOfDay } from "date-fns";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useCalendarTheme } from "../theme";
 import type { CalendarEvent, CalendarMode, EventKeyExtractor, RenderEvent } from "../types";
 import { isAllDayEvent } from "@super-calendar/core";
@@ -46,8 +46,19 @@ export function AllDayLane<T>({
   if (perDay.every((list) => list.length === 0)) return null;
 
   return (
-    <View style={[styles.lane, { borderBottomColor: theme.colors.gridLine }]}>
-      <View style={{ width: hourColumnWidth }} />
+    <View
+      style={[
+        styles.lane,
+        { borderTopColor: theme.colors.gridLine, borderBottomColor: theme.colors.gridLine },
+      ]}
+    >
+      <View style={{ width: hourColumnWidth }}>
+        {/* The "all-day" gutter label, mirroring the dom renderer: small, muted,
+            and right-aligned against the timed columns. */}
+        <Text style={[styles.label, { color: theme.colors.textMuted }]} allowFontScaling={false}>
+          all-day
+        </Text>
+      </View>
       {days.map((day, dayIndex) => (
         <View key={day.toISOString()} style={[styles.column, { width: dayWidth }]}>
           {perDay[dayIndex].map((event, index) => (
@@ -70,10 +81,18 @@ export function AllDayLane<T>({
 const styles = StyleSheet.create({
   lane: {
     flexDirection: "row",
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderBottomWidth: StyleSheet.hairlineWidth,
     paddingBottom: 2,
   },
+  label: {
+    fontSize: 10,
+    textAlign: "right",
+    paddingTop: 4,
+    paddingRight: 6,
+  },
   column: {
+    paddingVertical: 2,
     paddingHorizontal: 1,
     gap: 2,
   },
