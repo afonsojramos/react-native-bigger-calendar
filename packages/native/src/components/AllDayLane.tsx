@@ -52,9 +52,10 @@ export function AllDayLane<T>({
         { borderTopColor: theme.colors.gridLine, borderBottomColor: theme.colors.gridLine },
       ]}
     >
-      <View style={{ width: hourColumnWidth }}>
+      <View style={[styles.gutter, { width: hourColumnWidth }]}>
         {/* The "all-day" gutter label, mirroring the dom renderer: small, muted,
-            and right-aligned against the timed columns. */}
+            and right-aligned against the timed columns. Centered vertically so it
+            lines up with the chips whether the lane holds one event or several. */}
         <Text style={[styles.label, { color: theme.colors.textMuted }]} allowFontScaling={false}>
           all-day
         </Text>
@@ -83,12 +84,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderTopWidth: StyleSheet.hairlineWidth,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    paddingBottom: 2,
+  },
+  gutter: {
+    justifyContent: "center",
   },
   label: {
     fontSize: 10,
     textAlign: "right",
-    paddingTop: 4,
     paddingRight: 6,
   },
   column: {
