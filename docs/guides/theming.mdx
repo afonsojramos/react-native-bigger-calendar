@@ -17,12 +17,33 @@ Pass a `Partial<CalendarTheme>` — anything you omit falls back to `defaultThem
 />
 ```
 
-See `CalendarTheme` for the full set of color, text, and metric tokens.
+### Color tokens
+
+Every coloured surface is a token, so the visual touches below are all yours to
+restyle. The names are shared by both renderers — the React Native theme nests
+them under `colors`, the dom theme (`DomCalendarTheme`) is flat.
+
+| Token                                 | Colors                                                                 |
+| ------------------------------------- | ---------------------------------------------------------------------- |
+| `text` / `textMuted` / `textDisabled` | Day numbers / hour & "+N more" labels / disabled & adjacent-month days |
+| `gridLine`                            | Hour lines, day separators, month-cell borders                         |
+| `weekendBackground`                   | Weekend column/cell tint                                               |
+| `outsideHoursBackground`              | Closed-hours shade (business hours)                                    |
+| `hoverBackground`                     | Hover highlight behind a day (web/mouse only)                          |
+| `todayBackground` / `todayText`       | Today badge fill / text                                                |
+| `selectedBackground` / `selectedText` | Selected day & range-endpoint badge fill / text                        |
+| `rangeBackground`                     | The selected-range band                                                |
+| `nowIndicator`                        | Current-time line                                                      |
+| `eventBackground` / `eventText`       | Default event chip fill / text                                         |
+
+Metric tokens cover the sizes: `rangeBandHeight` (the pill strip's height; its
+corner radius is half this), the day-badge size/radius, and on dom `cellHeight`
+and `fontFamily`. See `CalendarTheme` / `DomCalendarTheme` for the exact types.
 
 The date selection in [`MonthList`](/guides/month-list) draws filled endpoint
 badges (`selectedBackground` / `selectedText`) and a rounded band across the span
-(`rangeBackground`, height `rangeBandHeight`). Pass `fillCellOnSelection` to fill
-the whole cell instead of the pill.
+(`rangeBackground`, height `rangeBandHeight`). The band caps at the endpoint
+circles; pass `fillCellOnSelection` to fill the whole cell instead of the pill.
 
 ### Dark mode
 
