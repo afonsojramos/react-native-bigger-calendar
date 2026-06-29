@@ -1,7 +1,20 @@
-// Date-picker entry point: the month grid, selection, and the headless grid,
-// with no dependency on the timetable views or Reanimated. Import from
-// "react-native-super-calendar/picker" for a picker-only bundle that doesn't
-// require react-native-reanimated. The main entry re-exports everything.
+/**
+ * The picker-only entry point for `@super-calendar/native`: the month grid,
+ * selection, and the headless grid, with no dependency on the timetable views or
+ * Reanimated.
+ *
+ * Import from `@super-calendar/native/picker` for a lighter bundle that does not
+ * require react-native-reanimated. The main entry re-exports everything here.
+ *
+ * @example
+ * ```tsx
+ * import { MonthView } from "@super-calendar/native/picker";
+ * ```
+ *
+ * @see https://super-calendar.afonsojramos.me
+ *
+ * @module
+ */
 export { MonthView, type MonthViewProps } from "./components/MonthView";
 export { MonthPager, type MonthPagerProps } from "./components/MonthPager";
 export { MonthList, type MonthListProps } from "./components/MonthList";

@@ -1,7 +1,24 @@
-// react-dom entry point: real DOM components (no React Native, no react-native-web).
-// Built on the library's headless core and Legend List's DOM renderer. Pair with
-// the headless hooks (useDateRange, useMonthGrid) re-exported below for selection
-// state and custom layouts.
+/**
+ * The react-dom renderer for super-calendar: real DOM components, no React
+ * Native and no react-native-web.
+ *
+ * Built on the headless core and Legend List's DOM renderer. The headless hooks
+ * (`useDateRange`, `useMonthGrid`) are re-exported below for selection state and
+ * custom layouts.
+ *
+ * @example
+ * ```tsx
+ * import { Calendar } from "@super-calendar/dom";
+ *
+ * export function App() {
+ *   return <Calendar mode="month" />;
+ * }
+ * ```
+ *
+ * @see https://super-calendar.afonsojramos.me
+ *
+ * @module
+ */
 export { Agenda, type AgendaProps, type DomAgendaEvent, type DomAgendaEventArgs } from "./Agenda";
 export { Calendar, type CalendarProps } from "./Calendar";
 export {

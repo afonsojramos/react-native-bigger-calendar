@@ -1,3 +1,25 @@
+/**
+ * The React Native renderer for super-calendar: gesture-driven, virtualized
+ * month, week, and day views, plus the agenda and date picker. Runs on native
+ * and on the web through react-native-web.
+ *
+ * Built on the headless core, Legend List, Gesture Handler, and Reanimated. For
+ * a picker-only bundle that does not pull in Reanimated, import from
+ * `@super-calendar/native/picker` instead.
+ *
+ * @example
+ * ```tsx
+ * import { Calendar } from "@super-calendar/native";
+ *
+ * export function App() {
+ *   return <Calendar mode="month" />;
+ * }
+ * ```
+ *
+ * @see https://super-calendar.afonsojramos.me
+ *
+ * @module
+ */
 export { Calendar, type CalendarProps } from "./components/Calendar";
 export { Agenda, type AgendaProps } from "./components/Agenda";
 export { MonthView, type MonthViewProps } from "./components/MonthView";
