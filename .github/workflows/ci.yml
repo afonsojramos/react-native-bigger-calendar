@@ -35,7 +35,7 @@ jobs:
         run: |
           for pkg in core native dom; do
             echo "== @super-calendar/$pkg =="
-            (cd "packages/$pkg" && bunx --bun publint@latest)
+            (cd "packages/$pkg" && pnpm dlx publint@latest)
           done
 
   docs-links:
