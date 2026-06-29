@@ -108,9 +108,10 @@ type DragState = {
 };
 
 // Chip line metrics, matched to the box font below so the title clamp lands on a
-// line boundary. fontSize 12 * lineHeight 1.25 = 15px per line; the time reserves
-// two lines (it wraps to a second line on a narrow column).
-const DOM_TITLE_LINE_HEIGHT = 15;
+// line boundary. 16px matches the native renderer's `eventTitle` line height, so
+// the "does the time line still fit" decision flips at the same box height on
+// both. The time reserves two lines (it can wrap on a narrow column).
+const DOM_TITLE_LINE_HEIGHT = 16;
 const DOM_TIME_LINE_HEIGHT = 30;
 const DOM_BOX_PADDING_V = 2;
 

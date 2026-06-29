@@ -89,7 +89,8 @@ const PAGE_WINDOW = 180;
 // A page must be ~fully on screen before it becomes the committed date.
 const PAGE_VIEWABILITY = { itemVisiblePercentThreshold: 90 };
 
-export const DEFAULT_HOUR_HEIGHT = 64;
+// Matches the dom renderer's default so both grids start at the same density.
+export const DEFAULT_HOUR_HEIGHT = 48;
 const DEFAULT_MIN_HOUR_HEIGHT = 32;
 const DEFAULT_MAX_HOUR_HEIGHT = 160;
 const DEFAULT_HOUR_COLUMN_WIDTH = 56;

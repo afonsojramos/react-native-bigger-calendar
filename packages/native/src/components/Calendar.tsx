@@ -129,7 +129,7 @@ export type CalendarProps<T> = {
   theme?: PartialCalendarTheme;
   /** Externally-owned per-hour row height (week/day). Created internally if omitted. */
   cellHeight?: ReturnType<typeof useSharedValue<number>>;
-  /** Initial per-hour row height in px (week/day). Default 64. */
+  /** Initial per-hour row height in px (week/day). Default 48. */
   hourHeight?: number;
   minHourHeight?: number;
   maxHourHeight?: number;
