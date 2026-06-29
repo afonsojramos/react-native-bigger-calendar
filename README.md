@@ -3,14 +3,22 @@
 <p align="center">A generic, themeable <strong>month / week / day</strong> calendar for React Native.</p>
 
 <p align="center">
-  <a href="https://npmx.dev/package/react-native-super-calendar"><img alt="npm version" src="https://img.shields.io/npm/v/react-native-super-calendar?style=flat-square&amp;color=1F6FEB" /></a>
-  <a href="https://npmx.dev/package/react-native-super-calendar"><img alt="downloads per month" src="https://img.shields.io/npm/dm/react-native-super-calendar?style=flat-square" /></a>
+  <a href="https://www.npmjs.com/package/@super-calendar/native"><img alt="npm version" src="https://img.shields.io/npm/v/@super-calendar/native?style=flat-square&amp;color=1F6FEB" /></a>
+  <a href="https://jsr.io/@super-calendar/native"><img alt="JSR version" src="https://img.shields.io/jsr/v/@super-calendar/native?style=flat-square&amp;label=JSR&amp;color=F7DF1E" /></a>
+  <a href="https://www.npmjs.com/package/@super-calendar/native"><img alt="downloads per month" src="https://img.shields.io/npm/dm/@super-calendar/native?style=flat-square" /></a>
   <a href="https://github.com/afonsojramos/react-native-super-calendar/actions/workflows/ci.yml"><img alt="CI status" src="https://img.shields.io/github/actions/workflow/status/afonsojramos/react-native-super-calendar/ci.yml?branch=main&amp;style=flat-square&amp;label=CI" /></a>
-  <a href="#license"><img alt="MIT license" src="https://img.shields.io/npm/l/react-native-super-calendar?style=flat-square" /></a>
+  <a href="#license"><img alt="MIT license" src="https://img.shields.io/npm/l/@super-calendar/native?style=flat-square" /></a>
 </p>
 
 <p align="center">
   <img alt="Month, week, 3-day, day and schedule views of react-native-super-calendar" src="./.github/assets/preview.png" />
+</p>
+
+<p align="center">
+  <a href="https://super-calendar.afonsojramos.me"><strong>Documentation</strong></a> ·
+  <a href="https://super-calendar.afonsojramos.me/quickstart">Quickstart</a> ·
+  <a href="https://super-calendar.afonsojramos.me/demo">Live demo</a> ·
+  <a href="https://super-calendar.afonsojramos.me/reference/api">API reference</a>
 </p>
 
 - 📆 Month grid plus day / 3-day / week / custom-N time-grids
@@ -31,7 +39,7 @@ modern list virtualization — trading framework-agnosticism for a richer,
 gesture-driven experience. It's **not a fork**; the API differs, and the name is
 an homage. 🙇
 
-**Already using react-native-big-calendar?** The [migration guide](https://github.com/afonsojramos/react-native-super-calendar/blob/main/docs/migrating-from-big-calendar.mdx) has a copy-paste prompt for your coding agent plus a manual prop mapping.
+**Already using react-native-big-calendar?** The [migration guide](https://super-calendar.afonsojramos.me/migrating-from-big-calendar) has a copy-paste prompt for your coding agent plus a manual prop mapping.
 
 ### At a glance
 
@@ -112,8 +120,10 @@ views.
 ## Install
 
 ```sh
-npm install react-native-super-calendar
+npm install @super-calendar/native
 ```
+
+Also published on [JSR](https://jsr.io/@super-calendar/native): `deno add jsr:@super-calendar/native` (or `npx jsr add @super-calendar/native`).
 
 ### Peer dependencies
 
@@ -126,9 +136,10 @@ npm install react-native-reanimated react-native-worklets react-native-gesture-h
 Make sure Reanimated and Gesture Handler are set up per their own docs (Babel
 plugin, `GestureHandlerRootView` at the root of your app).
 
-These are declared as optional peers so web-only installs (the `/dom` and
-`/picker` entry points) aren't asked to install React Native packages they don't
-use. The full calendar still needs them: because its components import Reanimated
+These are declared as optional peers so web-only installs (`@super-calendar/dom`)
+and the picker (the `@super-calendar/native/picker` subpath) aren't asked to
+install React Native packages they don't use. The full calendar still needs them:
+because its components import Reanimated
 and Gesture Handler directly, a missing one surfaces as a clear Metro
 `Unable to resolve "react-native-reanimated"` build error rather than a silent
 failure, so install the line above when you use `Calendar` or the time grid.
@@ -136,7 +147,7 @@ failure, so install the line above when you use `Calendar` or the time grid.
 ### Picker only? Skip Reanimated
 
 If you only need date selection, import it from the
-`react-native-super-calendar/picker` entry point. It contains the month grid,
+`@super-calendar/native/picker` subpath. It contains the month grid,
 selection, and the headless `useMonthGrid`, with **none of the timetable code and
 no Reanimated dependency**, so it works on every bundler (Metro included) without
 shipping the week/day grid. A picker-only app installs just:
@@ -146,27 +157,28 @@ npm install react-native-gesture-handler @legendapp/list date-fns
 ```
 
 ```tsx
-import { MonthList, useDateRange } from "react-native-super-calendar/picker";
+import { MonthList, useDateRange } from "@super-calendar/native/picker";
 ```
 
 `react-native-reanimated` and `react-native-worklets` are declared as optional
-peers, so this entry point won't pull them in. (Metro doesn't tree-shake the main
-barrel, so the subpath is what guarantees the timetable code is left out.)
+peers, so this subpath won't pull them in. (Metro doesn't tree-shake the
+`@super-calendar/native` barrel, so the subpath is what guarantees the timetable
+code is left out.)
 
 ### React DOM (web without React Native)
 
-For a plain react-dom app (no React Native, no react-native-web), import the
-`react-native-super-calendar/dom` entry point. It ships real DOM components,
+For a plain react-dom app (no React Native, no react-native-web), install the
+`@super-calendar/dom` package. It ships real DOM components,
 `MonthView`, `MonthList` (the date picker), and `TimeGrid` (day/week/N-day, with
 Ctrl/⌘-scroll and pinch zoom plus drag to move and resize), built on the same
 pure core and Legend List's DOM renderer. A web app installs just:
 
 ```sh
-npm install react react-dom @legendapp/list date-fns
+npm install @super-calendar/dom react react-dom @legendapp/list date-fns
 ```
 
 ```tsx
-import { MonthList, TimeGrid, useDateRange } from "react-native-super-calendar/dom";
+import { MonthList, TimeGrid, useDateRange } from "@super-calendar/dom";
 ```
 
 The React Native peers (`react-native`, `react-native-gesture-handler`,
@@ -182,21 +194,25 @@ edge to edge instead.
 ### Headless core (any renderer)
 
 Want the date math and selection model without any of the built-in UI? The
-`react-native-super-calendar/headless` entry point exports just the pure pieces,
+`@super-calendar/core` package exports just the pure pieces,
 `buildMonthGrid` / `useMonthGrid`, `useDateRange` and the selection helpers,
 `layoutDayEvents`, and the date utilities, with zero React Native, Reanimated, or
 Legend List imports. It's what the DOM components are built on, and it works in
 any React renderer (react-dom, Solid via its React compat, your own).
 
+```sh
+npm install @super-calendar/core react date-fns
+```
+
 ```tsx
-import { buildMonthGrid, nextDateRange } from "react-native-super-calendar/headless";
+import { buildMonthGrid, nextDateRange } from "@super-calendar/core";
 ```
 
 ## Usage
 
 ```tsx
 import { useState } from "react";
-import { Calendar, type CalendarEvent } from "react-native-super-calendar";
+import { Calendar, type CalendarEvent } from "@super-calendar/native";
 
 type MyEvent = { id: string; color: string };
 
@@ -246,7 +262,7 @@ detail progressively without re-rendering:
 ```tsx
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { Pressable, Text } from "react-native";
-import type { RenderEventArgs } from "react-native-super-calendar";
+import type { RenderEventArgs } from "@super-calendar/native";
 
 // Define the component once (don't inline it, or it remounts every render).
 function MyEvent({ event, boxHeight, onPress }: RenderEventArgs<MyEvent>) {
@@ -338,7 +354,7 @@ range you're showing with `expandRecurringEvents`. The calendar doesn't expand
 recurrences itself, so you control the window (and can memoize it):
 
 ```tsx
-import { Calendar, expandRecurringEvents } from "react-native-super-calendar";
+import { Calendar, expandRecurringEvents } from "@super-calendar/native";
 
 const events = [
   // Every weekday standup, 20 occurrences:
@@ -371,7 +387,7 @@ long-press and drag to sweep a range (the list auto-scrolls at the edges, so a
 range can span months):
 
 ```tsx
-import { MonthList, useDateRange } from "react-native-super-calendar";
+import { MonthList, useDateRange } from "@super-calendar/native";
 
 function RangePicker() {
   const [date, setDate] = useState(new Date());
@@ -423,7 +439,7 @@ and optionally a `renderEvent`. Both `renderEvent` and `keyExtractor` default,
 so an events-free picker needs neither:
 
 ```tsx
-import { MonthList } from "react-native-super-calendar";
+import { MonthList } from "@super-calendar/native";
 
 <MonthList
   date={new Date()}
@@ -443,7 +459,7 @@ options)` returns the weeks, the weekday headers, and per-day state
 render however you like:
 
 ```tsx
-import { useMonthGrid } from "react-native-super-calendar";
+import { useMonthGrid } from "@super-calendar/native";
 
 const { weeks, weekdays } = useMonthGrid(month, { weekStartsOn: 1, selectedRange: range });
 // weekdays -> header cells; weeks[].days -> your own <DayCell />
@@ -460,7 +476,7 @@ IANA zone regardless of the device, run them through `eventsInTimeZone` (or a
 single date through `toZonedTime`). It's DST-correct via `Intl`:
 
 ```tsx
-import { Calendar, eventsInTimeZone } from "react-native-super-calendar";
+import { Calendar, eventsInTimeZone } from "@super-calendar/native";
 
 // Render every event at its New York wall-clock time.
 <Calendar /* ... */ events={eventsInTimeZone(events, "America/New_York")} />;
@@ -488,7 +504,7 @@ For dark mode, pass the built-in `darkTheme` (switch on the system scheme with
 `useColorScheme()`):
 
 ```tsx
-import { Calendar, darkTheme, defaultTheme } from "react-native-super-calendar";
+import { Calendar, darkTheme, defaultTheme } from "@super-calendar/native";
 import { useColorScheme } from "react-native";
 
 const scheme = useColorScheme();
