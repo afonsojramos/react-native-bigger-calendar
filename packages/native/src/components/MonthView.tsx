@@ -335,9 +335,9 @@ function MonthViewInner<T>({
         {hasBand ? (
           <View
             testID="month-range-band"
-            pointerEvents="none"
             style={[
               styles.rangeBand,
+              { pointerEvents: "none" },
               { backgroundColor: theme.colors.rangeBackground },
               fillCellOnSelection
                 ? { top: 0, bottom: 0 }

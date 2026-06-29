@@ -1129,9 +1129,9 @@ function TimetablePageInner<T>({
 
             {createEnabled ? (
               <Animated.View
-                pointerEvents="none"
                 style={[
                   styles.createGhost,
+                  { pointerEvents: "none" },
                   {
                     backgroundColor: theme.colors.eventBackground,
                     borderColor: theme.colors.todayBackground,
