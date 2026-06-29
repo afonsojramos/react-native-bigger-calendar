@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import Animated, { useAnimatedStyle, useDerivedValue } from "react-native-reanimated";
 import { useCalendarTheme } from "../theme";
@@ -40,7 +41,7 @@ export function DefaultEvent<T>({
   cellStyle,
   onPress,
   onLongPress,
-}: RenderEventArgs<T>) {
+}: RenderEventArgs<T>): ReactElement {
   const theme = useCalendarTheme();
   const isAllDayEvent = isAllDay ?? false;
   const timeLabel = eventTimeLabel({

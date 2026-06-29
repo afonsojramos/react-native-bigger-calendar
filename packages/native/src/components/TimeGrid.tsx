@@ -15,7 +15,7 @@ import {
   startOfDay,
   startOfWeek,
 } from "date-fns";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   type GestureResponderEvent,
   Platform,
@@ -1284,7 +1284,7 @@ function TimeGridInner<T>({
   onPressDateHeader,
   onChangeDate,
   renderHeader,
-}: TimeGridProps<T>) {
+}: TimeGridProps<T>): ReactElement {
   // Guard against an inverted/out-of-range window so the grid never collapses.
   const clampedMinHour = Math.max(0, Math.min(minHour, HOURS_PER_DAY - 1));
   const clampedMaxHour = Math.max(clampedMinHour + 1, Math.min(maxHour, HOURS_PER_DAY));

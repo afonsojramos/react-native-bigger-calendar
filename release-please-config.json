@@ -4,8 +4,16 @@
   "separate-pull-requests": false,
   "plugins": ["node-workspace"],
   "packages": {
-    "packages/core": {},
-    "packages/native": {},
-    "packages/dom": {}
+    "packages/core": {
+      "extra-files": [{ "type": "json", "path": "packages/core/jsr.json", "jsonpath": "$.version" }]
+    },
+    "packages/native": {
+      "extra-files": [
+        { "type": "json", "path": "packages/native/jsr.json", "jsonpath": "$.version" }
+      ]
+    },
+    "packages/dom": {
+      "extra-files": [{ "type": "json", "path": "packages/dom/jsr.json", "jsonpath": "$.version" }]
+    }
   }
 }

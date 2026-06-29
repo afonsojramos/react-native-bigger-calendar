@@ -7,7 +7,7 @@ import {
   startOfMonth,
   startOfWeek,
 } from "date-fns";
-import { useCallback, useMemo } from "react";
+import { type ReactElement, useCallback, useMemo } from "react";
 import type { StyleProp, ViewStyle } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import { CalendarThemeProvider, mergeTheme, type PartialCalendarTheme } from "../theme";
@@ -297,7 +297,7 @@ export function Calendar<T>({
   renderHeaderForMonthView,
   renderCustomDateForMonth,
   itemSeparatorComponent,
-}: CalendarProps<T>) {
+}: CalendarProps<T>): ReactElement {
   const mergedTheme = useMemo(() => mergeTheme(theme), [theme]);
   const internalCellHeight = useSharedValue(hourHeight);
   const cellHeight = cellHeightProp ?? internalCellHeight;

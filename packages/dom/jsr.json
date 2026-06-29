@@ -1,0 +1,16 @@
+{
+  "name": "@super-calendar/dom",
+  "version": "2.0.0",
+  "license": "MIT",
+  "exports": "./src/index.ts",
+  "imports": {
+    "@super-calendar/core": "npm:@super-calendar/core@^2",
+    "@legendapp/list": "npm:@legendapp/list@^3",
+    "date-fns": "npm:date-fns@^4",
+    "react": "npm:react@^19",
+    "react-dom": "npm:react-dom@^19"
+  },
+  "publish": {
+    "exclude": ["**/__tests__/**", "tsdown.config.mts"]
+  }
+}

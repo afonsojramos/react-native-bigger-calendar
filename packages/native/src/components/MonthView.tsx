@@ -1,5 +1,5 @@
 import { format, type Locale, isSameMonth, startOfDay } from "date-fns";
-import { memo, useMemo, useState } from "react";
+import { memo, type ReactElement, useMemo, useState } from "react";
 import {
   type LayoutChangeEvent,
   Platform,
@@ -139,7 +139,7 @@ function MonthViewInner<T>({
   renderCustomDateForMonth,
   onDayPointerDown,
   onDayPointerEnter,
-}: MonthViewProps<T>) {
+}: MonthViewProps<T>): ReactElement {
   const theme = useCalendarTheme();
   // Selection comes from context (so cached pages still repaint), but explicit
   // props win for direct/standalone use of MonthView.

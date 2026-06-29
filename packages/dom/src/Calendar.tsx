@@ -1,5 +1,5 @@
 import type { Locale } from "date-fns";
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, ReactElement, ReactNode } from "react";
 import type {
   BusinessHours,
   CalendarEvent,
@@ -150,7 +150,7 @@ export function Calendar<T = unknown>({
   renderMonthEvent,
   // schedule
   renderScheduleEvent,
-}: CalendarProps<T>) {
+}: CalendarProps<T>): ReactElement {
   if (mode === "schedule") {
     return (
       <Agenda<T>

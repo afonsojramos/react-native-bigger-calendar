@@ -3,6 +3,7 @@ import {
   type ComponentType,
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
+  type ReactElement,
   type ReactNode,
   useEffect,
   useMemo,
@@ -221,7 +222,7 @@ export function TimeGrid<T = unknown>({
   onDragEvent,
   className,
   style,
-}: TimeGridProps<T>) {
+}: TimeGridProps<T>): ReactElement {
   const theme = useMemo(() => mergeDomTheme(themeOverrides), [themeOverrides]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const dfns = locale ? { locale } : undefined;

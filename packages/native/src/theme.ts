@@ -1,5 +1,5 @@
 import { type CalendarColors, darkColors, lightColors } from "@super-calendar/core";
-import { createContext, useContext } from "react";
+import { type Context, createContext, useContext } from "react";
 import type { TextStyle } from "react-native";
 
 /**
@@ -79,8 +79,8 @@ export type PartialCalendarTheme = {
   rangeBandHeight?: number;
 };
 
-const CalendarThemeContext = createContext<CalendarTheme>(defaultTheme);
+const CalendarThemeContext: Context<CalendarTheme> = createContext<CalendarTheme>(defaultTheme);
 
 export const CalendarThemeProvider = CalendarThemeContext.Provider;
 
-export const useCalendarTheme = () => useContext(CalendarThemeContext);
+export const useCalendarTheme = (): CalendarTheme => useContext(CalendarThemeContext);

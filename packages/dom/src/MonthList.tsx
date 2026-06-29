@@ -1,6 +1,6 @@
 import { LegendList } from "@legendapp/list/react";
 import { addMonths, type Locale, startOfMonth } from "date-fns";
-import { type CSSProperties, useMemo } from "react";
+import { type CSSProperties, type ReactElement, useMemo } from "react";
 import {
   buildMonthGrid,
   type CalendarEvent,
@@ -81,7 +81,7 @@ export function MonthList<T = unknown>({
   onPressDay,
   className,
   style,
-}: MonthListProps<T>) {
+}: MonthListProps<T>): ReactElement {
   const theme = useMemo(() => mergeDomTheme(themeOverrides), [themeOverrides]);
 
   const months = useMemo(() => {

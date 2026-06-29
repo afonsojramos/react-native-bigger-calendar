@@ -1,0 +1,13 @@
+{
+  "name": "@super-calendar/core",
+  "version": "2.0.0",
+  "license": "MIT",
+  "exports": "./src/index.ts",
+  "imports": {
+    "date-fns": "npm:date-fns@^4",
+    "react": "npm:react@^19"
+  },
+  "publish": {
+    "exclude": ["**/__tests__/**", "tsdown.config.mts"]
+  }
+}

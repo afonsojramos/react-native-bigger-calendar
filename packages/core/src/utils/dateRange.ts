@@ -1,5 +1,14 @@
 import { isAfter, isBefore, startOfDay } from "date-fns";
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import {
+  type Context,
+  createContext,
+  type Dispatch,
+  type SetStateAction,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 import { isSameCalendarDay } from "./dates";
 
 /** A selected span. `end` is `null` while only the first endpoint has been picked. */
@@ -110,7 +119,7 @@ export interface CalendarSelection extends DateSelectionConstraints {
   selectedRange?: DateRange;
 }
 
-const CalendarSelectionContext = createContext<CalendarSelection>({});
+const CalendarSelectionContext: Context<CalendarSelection> = createContext<CalendarSelection>({});
 
 /**
  * Provides the active selection to the month grid. Day cells read it via
@@ -119,12 +128,26 @@ const CalendarSelectionContext = createContext<CalendarSelection>({});
  */
 export const CalendarSelectionProvider = CalendarSelectionContext.Provider;
 
-export const useCalendarSelection = () => useContext(CalendarSelectionContext);
+export const useCalendarSelection = (): CalendarSelection => useContext(CalendarSelectionContext);
 
 /** Options for {@link useDateRange}. */
 export interface UseDateRangeOptions extends DateSelectionConstraints {
   /** Pre-select a range on mount. */
   initialRange?: DateRange | null;
+}
+
+/** The state and handlers returned by {@link useDateRange}. */
+export interface UseDateRangeResult {
+  /** The current selection; `null` until the first endpoint is picked. */
+  range: DateRange | null;
+  /** Wire to `onPressDay`: advances the range (start, then end, then restarts). */
+  onPressDate: (date: Date) => void;
+  /** Set both endpoints at once (ordered); ignored if either isn't selectable. */
+  selectRange: (a: Date, b: Date) => void;
+  /** Clear the selection. */
+  reset: () => void;
+  /** The raw state setter, for full control. */
+  setRange: Dispatch<SetStateAction<DateRange | null>>;
 }
 
 /**
@@ -137,7 +160,7 @@ export interface UseDateRangeOptions extends DateSelectionConstraints {
  * <Calendar mode="month" selectedRange={range ?? undefined} onPressDay={onPressDate} … />
  * ```
  */
-export function useDateRange(options: UseDateRangeOptions = {}) {
+export function useDateRange(options: UseDateRangeOptions = {}): UseDateRangeResult {
   const { initialRange = null, minDate, maxDate, isDateDisabled } = options;
   const [range, setRange] = useState<DateRange | null>(initialRange);
   const constraints = useMemo<DateSelectionConstraints>(

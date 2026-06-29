@@ -11,3 +11,6 @@ dist/
 
 # visual parity tool output (scripts/visual-parity.mjs)
 visual-parity/
+
+# Deno / JSR lockfiles (consumer-side, not needed in the repo)
+deno.lock

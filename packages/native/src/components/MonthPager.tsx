@@ -5,7 +5,7 @@ import {
   type OnViewableItemsChangedInfo,
 } from "@legendapp/list/react-native";
 import { addMonths, differenceInCalendarMonths, format, type Locale, startOfMonth } from "date-fns";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Platform,
   StyleSheet,
@@ -90,7 +90,7 @@ function MonthPagerInner<T>({
   activeDate,
   renderHeaderForMonthView,
   renderCustomDateForMonth,
-}: MonthPagerProps<T>) {
+}: MonthPagerProps<T>): ReactElement {
   const theme = useCalendarTheme();
   const { width, height } = useWindowDimensions();
   const listRef = useRef<LegendListRef>(null);

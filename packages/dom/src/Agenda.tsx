@@ -1,6 +1,6 @@
 import { LegendList } from "@legendapp/list/react";
 import { format, isSameDay, type Locale, startOfDay } from "date-fns";
-import { type ComponentType, type CSSProperties, useMemo } from "react";
+import { type ComponentType, type CSSProperties, type ReactElement, useMemo } from "react";
 import type { CalendarEvent } from "@super-calendar/core";
 import { eventTimeLabel, getIsToday, isAllDayEvent } from "@super-calendar/core";
 import { type DomCalendarTheme, mergeDomTheme } from "./theme";
@@ -92,7 +92,7 @@ export function Agenda<T = unknown>({
   onPressDay,
   className,
   style,
-}: AgendaProps<T>) {
+}: AgendaProps<T>): ReactElement {
   const theme = useMemo(() => mergeDomTheme(themeOverrides), [themeOverrides]);
   const Renderer = renderEvent;
 

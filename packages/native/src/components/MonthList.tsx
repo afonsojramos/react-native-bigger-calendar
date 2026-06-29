@@ -12,7 +12,7 @@ import {
   type Locale,
   startOfMonth,
 } from "date-fns";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   type LayoutChangeEvent,
   type NativeScrollEvent,
@@ -155,7 +155,7 @@ function MonthListInner<T>({
   onSelectDrag,
   onChangeVisibleMonth,
   renderMonthHeader,
-}: MonthListProps<T>) {
+}: MonthListProps<T>): ReactElement {
   const theme = useCalendarTheme();
   const listRef = useRef<LegendListRef>(null);
 

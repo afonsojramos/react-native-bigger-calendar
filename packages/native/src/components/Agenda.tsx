@@ -1,6 +1,6 @@
 import { LegendList, type LegendListRenderItemProps } from "@legendapp/list/react-native";
 import { format, isSameDay, type Locale, startOfDay } from "date-fns";
-import { type ComponentType, useCallback, useMemo } from "react";
+import { type ComponentType, type ReactElement, useCallback, useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useCalendarTheme } from "../theme";
 import type { CalendarEvent, EventKeyExtractor, RenderEvent } from "../types";
@@ -40,7 +40,7 @@ export function Agenda<T>({
   onPressDay,
   activeDate,
   itemSeparatorComponent,
-}: AgendaProps<T>) {
+}: AgendaProps<T>): ReactElement {
   const theme = useCalendarTheme();
   const RenderEventComponent = renderEvent;
 

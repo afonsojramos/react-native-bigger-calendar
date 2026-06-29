@@ -11,6 +11,7 @@ import {
   type ComponentType,
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
+  type ReactElement,
   useEffect,
   useMemo,
   useRef,
@@ -307,7 +308,7 @@ export function MonthView<T = unknown>({
   keyboardDayNavigation = false,
   className,
   style,
-}: MonthViewInternalProps<T>) {
+}: MonthViewInternalProps<T>): ReactElement {
   const theme = useMemo(() => mergeDomTheme(themeOverrides), [themeOverrides]);
 
   // Calendar layout (date in the corner + event chips) is on whenever `events`
