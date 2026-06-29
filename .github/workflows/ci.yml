@@ -35,7 +35,14 @@ jobs:
         run: |
           for pkg in core native dom; do
             echo "== @super-calendar/$pkg =="
-            (cd "packages/$pkg" && pnpm dlx publint@latest)
+            (
+              cd "packages/$pkg"
+              # node16 profile: gates node16 (CJS/ESM) + bundler resolution. node10
+              # is skipped on purpose; it can't resolve the exports-map subpaths
+              # (e.g. native's /picker) and is long EOL.
+              pnpm dlx @arethetypeswrong/cli@latest --pack . --profile node16
+              pnpm dlx publint@latest
+            )
           done
 
   docs-links:
