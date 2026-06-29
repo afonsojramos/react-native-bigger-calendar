@@ -18,7 +18,13 @@ function sources(pkg: string): string[] {
 }
 
 function importsOf(file: string): string[] {
-  const code = fs.readFileSync(file, "utf8");
+  // Strip comments first: JSDoc @example blocks legitimately show consumers the
+  // public barrel import (e.g. `import { Calendar } from "@super-calendar/native"`),
+  // which is documentation, not a real internal import that would hurt tree-shaking.
+  const code = fs
+    .readFileSync(file, "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:])\/\/.*$/gm, "$1");
   const specs: string[] = [];
   const re = /(?:\bfrom|\brequire\(|\bimport)\s*["']([^"']+)["']/g;
   let m: RegExpExecArray | null;
