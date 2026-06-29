@@ -141,6 +141,9 @@ export function MonthList<T = unknown>({
         keyExtractor={(m: Date) => m.toISOString()}
         recycleItems={false}
         estimatedItemSize={theme.cellHeight * 7 + 40}
+        // Open on the anchor month (today by default), not the first past month.
+        // `months` starts `pastMonths` before the anchor, so it sits at that index.
+        initialScrollIndex={pastMonths}
         style={{ height, overflowY: "auto" }}
         renderItem={({ item }: { item: Date }) => (
           <MonthView<T>
