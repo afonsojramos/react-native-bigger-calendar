@@ -9,6 +9,7 @@
     "headless",
     "react"
   ],
+  "homepage": "https://super-calendar.afonsojramos.me",
   "license": "MIT",
   "repository": {
     "type": "git",
