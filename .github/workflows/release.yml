@@ -34,3 +34,13 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm -r publish --access public --provenance --no-git-checks
+      # JSR registry (Deno), via the same GitHub OIDC token — no JSR_TOKEN. Each
+      # package must exist on jsr.io and be linked to this repository for OIDC to
+      # authorize. Best-effort: a JSR hiccup never fails the (already-done) npm
+      # publish above.
+      - name: Publish to JSR
+        continue-on-error: true
+        run: |
+          for pkg in core dom native; do
+            (cd "packages/$pkg" && pnpm dlx jsr publish --allow-dirty)
+          done
