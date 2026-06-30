@@ -68,8 +68,9 @@ function shiftedDate(date: Date, minutes: number): Date {
 }
 
 // Pin the calendar to a single view, overriding the tab bar — handy for
-// screenshots and docs. Set it to a mode (e.g. "week") to force that view; leave
-// it null to drive the calendar interactively through the tabs.
+// screenshots and docs. Set it to a mode (e.g. "week") to force that view and
+// hide the title and date-nav chrome (keeping only the tab bar), so a screenshot
+// frames just the calendar. Leave it null to drive the calendar interactively.
 const DEMO_MODE: CalendarMode | null = null;
 
 export default function App() {
@@ -150,12 +151,14 @@ export default function App() {
       <SafeAreaProvider>
         <SafeAreaView style={styles.root}>
           <View style={styles.page}>
-            <View style={styles.header}>
-              <Text style={styles.title}>@super-calendar/native</Text>
-              <Text style={styles.subtitle}>
-                The React Native renderer, running in the browser via react-native-web.
-              </Text>
-            </View>
+            {DEMO_MODE == null ? (
+              <View style={styles.header}>
+                <Text style={styles.title}>@super-calendar/native</Text>
+                <Text style={styles.subtitle}>
+                  The React Native renderer, running in the browser via react-native-web.
+                </Text>
+              </View>
+            ) : null}
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -177,7 +180,7 @@ export default function App() {
                 </Pressable>
               ))}
             </ScrollView>
-            {isGridMode(activeMode) ? (
+            {DEMO_MODE == null && isGridMode(activeMode) ? (
               <View style={styles.navRow}>
                 <View style={styles.navButtons}>
                   <Pressable
