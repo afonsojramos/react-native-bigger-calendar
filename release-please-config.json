@@ -2,13 +2,12 @@
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
   "release-type": "node",
   "separate-pull-requests": false,
-  "pull-request-title-pattern": "chore: release `@super-calendar` ${version}",
   "plugins": [
     "node-workspace",
     {
       "type": "linked-versions",
       "groupName": "super-calendar",
-      "components": ["@super-calendar/core", "@super-calendar/native", "@super-calendar/dom"]
+      "components": ["core", "native", "dom"]
     }
   ],
   "packages": {
