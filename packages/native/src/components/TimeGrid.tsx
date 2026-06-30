@@ -207,23 +207,30 @@ function AnimatedEventBox<T>({
   const moveOffsetX = useSharedValue(0);
   const resizeDelta = useSharedValue(0);
 
+  // Pull the geometry out as primitives so the worklets below close over plain
+  // numbers, not `positioned` itself. Referencing `positioned.*` inside a
+  // worklet captures the whole object, and `positioned.event` holds `Date`s,
+  // which react-native-worklets >=0.10 refuses to copy to the UI thread
+  // ("Cannot copy value of type `Date`").
+  const startHours = positioned.startHours;
+  const durationHours = positioned.durationHours;
+
   // Live pixel height of the box, driven on the UI thread by the shared
   // cellHeight (plus any in-progress resize). Handed to renderEvent so custom
   // renderers can reveal detail progressively as the grid zooms, without
   // re-rendering. Explicit deps so the worklet re-captures the event's geometry.
   const boxHeight = useDerivedValue(
-    () =>
-      Math.max(positioned.durationHours * cellHeight.value + resizeDelta.value, MIN_EVENT_HEIGHT),
-    [positioned.durationHours],
+    () => Math.max(durationHours * cellHeight.value + resizeDelta.value, MIN_EVENT_HEIGHT),
+    [durationHours],
   );
 
   const boxStyle = useAnimatedStyle(
     () => ({
-      top: (positioned.startHours - minHour) * cellHeight.value + moveOffset.value,
+      top: (startHours - minHour) * cellHeight.value + moveOffset.value,
       height: boxHeight.value,
       transform: [{ translateX: moveOffsetX.value }],
     }),
-    [positioned.startHours, positioned.durationHours, minHour],
+    [startHours, durationHours, minHour],
   );
 
   // Clear the drag preview once the committed change re-renders this box at its
