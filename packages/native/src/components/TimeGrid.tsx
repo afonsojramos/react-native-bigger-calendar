@@ -738,7 +738,11 @@ function TimetablePageInner<T>({
     [mode, date, weekStartsOn, numberOfDays, isRTL, weekEndsOn],
   );
 
-  const dayWidth = (width - hourColumnWidth) / days.length;
+  // Plain number for worklets to close over: reading `days.length` inside a
+  // gesture worklet would capture the whole `days` array (of `Date`s), which
+  // react-native-worklets >=0.10 refuses to copy to the UI thread.
+  const dayCount = days.length;
+  const dayWidth = (width - hourColumnWidth) / dayCount;
   const dayLeft = (dayIndex: number) => hourColumnWidth + dayIndex * dayWidth;
 
   const dayLayouts = useMemo(() => days.map((day) => layoutDayEvents(events, day)), [days, events]);
@@ -856,7 +860,7 @@ function TimetablePageInner<T>({
     const pan = Gesture.Pan()
       .enabled(createEnabled)
       .onStart((event) => {
-        const idx = days.length === 1 ? 0 : Math.floor(event.x / dayWidth);
+        const idx = dayCount === 1 ? 0 : Math.floor(event.x / dayWidth);
         createDayIndex.value = idx;
         createStartY.value = event.y;
         createLeft.value = hourColumnWidth + idx * dayWidth;
@@ -892,7 +896,7 @@ function TimetablePageInner<T>({
       : pan.activateAfterLongPress(DRAG_ACTIVATE_MS);
   }, [
     createEnabled,
-    days.length,
+    dayCount,
     dayWidth,
     hourColumnWidth,
     heightSource,
