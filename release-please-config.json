@@ -3,7 +3,14 @@
   "release-type": "node",
   "separate-pull-requests": false,
   "pull-request-title-pattern": "chore: release `@super-calendar`",
-  "plugins": ["node-workspace"],
+  "plugins": [
+    "node-workspace",
+    {
+      "type": "linked-versions",
+      "groupName": "super-calendar",
+      "components": ["@super-calendar/core", "@super-calendar/native", "@super-calendar/dom"]
+    }
+  ],
   "packages": {
     "packages/core": {
       "extra-files": [{ "type": "json", "path": "packages/core/jsr.json", "jsonpath": "$.version" }]
