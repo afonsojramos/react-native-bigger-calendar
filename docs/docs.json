@@ -51,7 +51,7 @@
     ],
     "primary": {
       "type": "github",
-      "href": "https://github.com/afonsojramos/react-native-super-calendar"
+      "href": "https://github.com/afonsojramos/super-calendar"
     }
   },
   "contextual": {
@@ -59,7 +59,7 @@
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/afonsojramos/react-native-super-calendar"
+      "github": "https://github.com/afonsojramos/super-calendar"
     }
   }
 }
