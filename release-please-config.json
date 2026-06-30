@@ -12,15 +12,13 @@
   ],
   "packages": {
     "packages/core": {
-      "extra-files": [{ "type": "json", "path": "packages/core/jsr.json", "jsonpath": "$.version" }]
+      "extra-files": [{ "type": "json", "path": "jsr.json", "jsonpath": "$.version" }]
     },
     "packages/native": {
-      "extra-files": [
-        { "type": "json", "path": "packages/native/jsr.json", "jsonpath": "$.version" }
-      ]
+      "extra-files": [{ "type": "json", "path": "jsr.json", "jsonpath": "$.version" }]
     },
     "packages/dom": {
-      "extra-files": [{ "type": "json", "path": "packages/dom/jsr.json", "jsonpath": "$.version" }]
+      "extra-files": [{ "type": "json", "path": "jsr.json", "jsonpath": "$.version" }]
     }
   }
 }
