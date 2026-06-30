@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.1.2](https://github.com/afonsojramos/super-calendar/compare/native-v2.1.1...native-v2.1.2) (2026-06-30)
+
+
+### Bug Fixes
+
+* **native:** keep Date objects out of time-grid worklets ([7d797ad](https://github.com/afonsojramos/super-calendar/commit/7d797ad17009a00bedc91877b703a5c061e10efb))
+* **native:** keep the day array out of the create-event worklet ([3285597](https://github.com/afonsojramos/super-calendar/commit/3285597c1fad0b2d7d2c221ebb617d1fc5bb25ee))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @super-calendar/core bumped to 2.1.2
+
 ## [2.1.1](https://github.com/afonsojramos/super-calendar/compare/native-v2.1.0...native-v2.1.1) (2026-06-29)
 
 

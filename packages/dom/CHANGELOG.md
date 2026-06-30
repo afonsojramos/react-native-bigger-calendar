@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.1.2](https://github.com/afonsojramos/super-calendar/compare/dom-v2.1.1...dom-v2.1.2) (2026-06-30)
+
+
+### Miscellaneous Chores
+
+* **dom:** Synchronize super-calendar versions
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @super-calendar/core bumped to 2.1.2
+
 ## [2.1.1](https://github.com/afonsojramos/super-calendar/compare/dom-v2.1.0...dom-v2.1.1) (2026-06-29)
 
 

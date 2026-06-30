@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.2](https://github.com/afonsojramos/super-calendar/compare/core-v2.1.1...core-v2.1.2) (2026-06-30)
+
+
+### Miscellaneous Chores
+
+* **core:** Synchronize super-calendar versions
+
 ## [2.1.1](https://github.com/afonsojramos/super-calendar/compare/core-v2.1.0...core-v2.1.1) (2026-06-29)
 
 
