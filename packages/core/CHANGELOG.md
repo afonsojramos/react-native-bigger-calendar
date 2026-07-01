@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.1.4](https://github.com/afonsojramos/super-calendar/compare/core-v2.1.3...core-v2.1.4) (2026-07-01)
+
+
+### Bug Fixes
+
+* **core:** add npmx package link to README ([97dc8a6](https://github.com/afonsojramos/super-calendar/commit/97dc8a6870515960ccffb6b226608a7f0a64f372))
+* **core:** make README npm-first ([21518e6](https://github.com/afonsojramos/super-calendar/commit/21518e6ee07542adb452d9cd21a622e3d35b8ef6))
+
 ## [2.1.3](https://github.com/afonsojramos/super-calendar/compare/core-v2.1.2...core-v2.1.3) (2026-06-30)
 
 

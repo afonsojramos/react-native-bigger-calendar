@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.1.4](https://github.com/afonsojramos/super-calendar/compare/native-v2.1.3...native-v2.1.4) (2026-07-01)
+
+
+### Bug Fixes
+
+* **native:** add npmx package link to README ([fcbc817](https://github.com/afonsojramos/super-calendar/commit/fcbc817900d45d2267dda43c7712e4b87798d905))
+* **native:** make README npm-first ([32a7dc6](https://github.com/afonsojramos/super-calendar/commit/32a7dc6fe6f8a3b3a75f09accd0b50c978e1631d))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @super-calendar/core bumped to 2.1.4
+
 ## [2.1.3](https://github.com/afonsojramos/super-calendar/compare/native-v2.1.2...native-v2.1.3) (2026-06-30)
 
 
