@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.1.4](https://github.com/afonsojramos/super-calendar/compare/dom-v2.1.3...dom-v2.1.4) (2026-07-01)
+
+
+### Bug Fixes
+
+* **dom:** add npmx package link to README ([4425697](https://github.com/afonsojramos/super-calendar/commit/4425697cae7ddee4cff3e502661fba19658b60af))
+* **dom:** make README npm-first ([cbcf2dd](https://github.com/afonsojramos/super-calendar/commit/cbcf2dd6104206450c790a555e51354ac949c28d))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @super-calendar/core bumped to 2.1.4
+
 ## [2.1.3](https://github.com/afonsojramos/super-calendar/compare/dom-v2.1.2...dom-v2.1.3) (2026-06-30)
 
 
